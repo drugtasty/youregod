@@ -310,13 +310,6 @@
                 fps4kRT = Math.floor(fps4kRT * 0.4); 
             }
 
-            // Roblox cap
-            if (gameKey === 'roblox') {
-                fps1080 = Math.min(fps1080, 240);
-                fps1440 = Math.min(fps1440, 240);
-                fps4k = Math.min(fps4k, 240);
-            }
-
             return { fps1080, fps1440, fps4k, fps4kRT };
         }
 
