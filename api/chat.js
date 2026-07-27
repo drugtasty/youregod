@@ -8,7 +8,7 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: "Missing build context" });
     }
 
-    const apiKey = process.env.GROQ_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
         return res.status(500).json({ error: "Server misconfiguration: API key is missing. Please add GROQ_API_KEY to your Vercel Environment Variables." });
     }
