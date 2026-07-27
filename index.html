@@ -278,6 +278,20 @@
                 <div id="builder-container">
                     <!-- Javascript will inject dropdowns here -->
                 </div>
+                
+                <!-- AI Panel -->
+                <div class="ai-panel" id="ai-panel" style="margin: 20px; margin-top: auto;">
+                    <strong>AI ASSISTANT</strong>
+                    <span id="ai-text">Ask me anything about your build!</span>
+
+                    <div id="ai-chat-container" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+                        <div id="ai-chat-history" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem; color: #aaa; display: flex; flex-direction: column; gap: 10px; padding-right: 5px;"></div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="ai-prompt" placeholder='Ask me anything about your build...' style="flex: 1; padding: 8px; border: 1px solid var(--border-color); background: #000; color: #fff; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 0.8rem;" onkeypress="if(event.key === 'Enter') handleAIPrompt()">
+                            <button id="ai-send-btn" class="buy-btn" style="background-color: var(--accent); color: #000;" onclick="handleAIPrompt()">ASK AI</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Telemetry Panel -->
@@ -368,20 +382,7 @@
                     </div>
                 </div>
 
-                <!-- AI Panel -->
-                <div class="ai-panel" id="ai-panel">
-                    <strong>AI ASSISTANT</strong>
-                    <span id="ai-text">Ask me anything about your build!</span>
-
-                    <div id="ai-chat-container" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
-                        <div id="ai-chat-history" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem; color: #aaa; display: flex; flex-direction: column; gap: 10px; padding-right: 5px;"></div>
-                        <div style="display: flex; gap: 8px;">
-                            <input type="text" id="ai-prompt" placeholder='Ask me anything about your build...' style="flex: 1; padding: 8px; border: 1px solid var(--border-color); background: #000; color: #fff; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 0.8rem;" onkeypress="if(event.key === 'Enter') handleAIPrompt()">
-                            <button id="ai-send-btn" class="buy-btn" style="background-color: var(--accent); color: #000;" onclick="handleAIPrompt()">ASK AI</button>
-                        </div>
-                    </div>
                 </div>
-
             </div>
         </div>
 
@@ -423,7 +424,17 @@
         let aiInterventionMessage = ""; // Holds dynamic compatibility warnings
 
         let savedCustomPresets = [];
-        try { savedCustomPresets = JSON.parse(localStorage.getItem('savedCustomPresets')) || []; } catch (e) {}
+        let customPartsDB = {};
+        try { 
+            savedCustomPresets = JSON.parse(localStorage.getItem('savedCustomPresets')) || []; 
+            customPartsDB = JSON.parse(localStorage.getItem('customPartsDB')) || {};
+            // Inject saved custom parts into the database before rendering
+            Object.keys(customPartsDB).forEach(catKey => {
+                if (db[catKey]) {
+                    db[catKey].push(...customPartsDB[catKey]);
+                }
+            });
+        } catch (e) {}
 
         function updatePresetDropdown() {
             const select = document.getElementById('pc-preset-selector');
@@ -526,6 +537,10 @@
             const newItem = { id: newId, name: `[CUSTOM] ${name}`, price: price, score: 0 };
             
             db[catKey].push(newItem);
+            if (!customPartsDB[catKey]) customPartsDB[catKey] = [];
+            customPartsDB[catKey].push(newItem);
+            localStorage.setItem('customPartsDB', JSON.stringify(customPartsDB));
+
             state[catKey] = newId;
             
             document.getElementById('custom-modal').style.display = 'none';
