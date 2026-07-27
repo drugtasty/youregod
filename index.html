@@ -527,6 +527,7 @@
             
             document.getElementById('custom-modal').style.display = 'none';
             initUI(); 
+            updateTelemetry();
         }
 
         function setFilter(catKey, filterId) {
@@ -749,7 +750,9 @@
             categories.forEach(cat => {
                 const item = db[cat.key].find(i => i.id === state[cat.key]) || dummyItem;
                 if (item.id === 'none') {
-                    missingCount++;
+                    if (['cpu', 'gpu', 'mobo', 'ram', 'storage', 'cooling', 'psu', 'case'].includes(cat.key)) {
+                        missingCount++;
+                    }
                     document.getElementById(`price-${cat.key}`).innerText = '-';
                     document.getElementById(`buy-${cat.key}`).disabled = true;
                 } else {
