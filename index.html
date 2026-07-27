@@ -140,7 +140,15 @@
         <div class="grid-layout">
             <!-- Builder Panel -->
             <div class="panel">
-                <div class="panel-header">Part Selection</div>
+                <div class="panel-header" style="align-items: center;">
+                    <span>Part Selection</span>
+                    <select id="pc-preset-selector" onchange="loadPreset()" style="width: auto; padding: 4px 8px; font-size: 0.7rem; margin-left: 10px;">
+                        <option value="custom">Custom Build...</option>
+                        <option value="user_3600">My $3,600 Ultimate Build</option>
+                        <option value="budget_1080p">Esports Budget 1080p</option>
+                        <option value="god_tier">The God Tier</option>
+                    </select>
+                </div>
                 <div id="builder-container"></div>
             </div>
 
@@ -341,6 +349,27 @@
         }
 
         // --- 5. Main Logic Loop ---
+        const pcPresets = {
+            user_3600: { cpu: 'c_9800x3d', gpu: 'g_5090', mobo: 'm_tomax870', ram: 'r_32_6000', storage: 's_990_2tb', cooling: 'cool_tryx', psu: 'p_1000e', case: 'case_evo' },
+            budget_1080p: { cpu: 'c_7600x', gpu: 'g_4070s', mobo: 'm_aorusb650', ram: 'r_32_6000', storage: 's_p3_2tb', cooling: 'cool_peerless', psu: 'p_850e', case: 'case_4000d' },
+            god_tier: { cpu: 'c_9950x', gpu: 'g_5090', mobo: 'm_godlike', ram: 'r_96_6400', storage: 's_990_4tb', cooling: 'cool_kraken', psu: 'p_1600i', case: 'case_nv7' }
+        };
+
+        function loadPreset() {
+            const presetKey = document.getElementById('pc-preset-selector').value;
+            if (presetKey === 'custom') return;
+            
+            const preset = pcPresets[presetKey];
+            if (preset) {
+                categories.forEach(cat => {
+                    state[cat.key] = preset[cat.key];
+                    document.getElementById(`select-${cat.key}`).value = preset[cat.key];
+                });
+                localStorage.setItem('dynamicBuildState', JSON.stringify(state));
+                updateTelemetry();
+            }
+        }
+
         function buyItem(categoryKey) {
             const selectedId = state[categoryKey];
             const item = db[categoryKey].find(i => i.id === selectedId);
@@ -352,6 +381,7 @@
         }
 
         function handleSelect(categoryKey) {
+            document.getElementById('pc-preset-selector').value = 'custom';
             const selectEl = document.getElementById(`select-${categoryKey}`);
             state[categoryKey] = selectEl.value;
             localStorage.setItem('dynamicBuildState', JSON.stringify(state));
