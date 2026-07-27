@@ -261,121 +261,15 @@
         </div>
     </div>
 
+    <script src="database.js"></script>
     <script>
-        // --- 1. Massive Database Expansion & Compatibility Tags ---
-        const dummyItem = { id: 'none', name: '-- Choose a Component --', price: 0, score: 0 };
-        const db = {
-            cpu: [
-                dummyItem,
-                // AM5
-                { id: 'c_9950x', name: 'AMD Ryzen 9 9950X', price: 650, score: 24000, socket: 'AM5' },
-                { id: 'c_9800x3d', name: 'AMD Ryzen 7 9800X3D', price: 440, score: 17000, socket: 'AM5' },
-                { id: 'c_7950x3d', name: 'AMD Ryzen 9 7950X3D', price: 600, score: 23500, socket: 'AM5' },
-                { id: 'c_7800x3d', name: 'AMD Ryzen 7 7800X3D', price: 350, score: 13500, socket: 'AM5' },
-                { id: 'c_7600x', name: 'AMD Ryzen 5 7600X', price: 200, score: 10500, socket: 'AM5' },
-                // AM4
-                { id: 'c_5800x3d', name: 'AMD Ryzen 7 5800X3D', price: 300, score: 11000, socket: 'AM4' },
-                { id: 'c_5600x', name: 'AMD Ryzen 5 5600X', price: 130, score: 8500, socket: 'AM4' },
-                { id: 'c_3600', name: 'AMD Ryzen 5 3600', price: 80, score: 6500, socket: 'AM4' },
-                // LGA1700 (Intel 12th/13th/14th Gen)
-                { id: 'c_14900k', name: 'Intel Core i9-14900K', price: 550, score: 21000, socket: 'LGA1700' },
-                { id: 'c_13700k', name: 'Intel Core i7-13700K', price: 360, score: 18500, socket: 'LGA1700' },
-                { id: 'c_13600k', name: 'Intel Core i5-13600K', price: 280, score: 14000, socket: 'LGA1700' },
-                { id: 'c_12400f', name: 'Intel Core i5-12400F', price: 140, score: 9500, socket: 'LGA1700' }
-            ],
-            gpu: [
-                dummyItem,
-                // RTX 50/40
-                { id: 'g_5090', name: 'NVIDIA RTX 5090 32GB', price: 1999, score: 41000 },
-                { id: 'g_5080', name: 'NVIDIA RTX 5080 16GB', price: 1199, score: 29500 },
-                { id: 'g_4090', name: 'NVIDIA RTX 4090 24GB', price: 1799, score: 36000 },
-                { id: 'g_4080s', name: 'NVIDIA RTX 4080 Super', price: 999, score: 28000 },
-                { id: 'g_4070s', name: 'NVIDIA RTX 4070 Super', price: 599, score: 21000 },
-                { id: 'g_4060', name: 'NVIDIA RTX 4060 8GB', price: 299, score: 10500 },
-                // RTX 30
-                { id: 'g_3080', name: 'NVIDIA RTX 3080 10GB', price: 450, score: 18000 },
-                { id: 'g_3060', name: 'NVIDIA RTX 3060 12GB', price: 250, score: 8700 },
-                // Radeon 7000/6000
-                { id: 'g_7900xtx', name: 'AMD Radeon RX 7900 XTX', price: 899, score: 29000 },
-                { id: 'g_7800xt', name: 'AMD Radeon RX 7800 XT', price: 499, score: 19000 },
-                { id: 'g_6700xt', name: 'AMD Radeon RX 6700 XT', price: 320, score: 12500 }
-            ],
-            mobo: [
-                dummyItem,
-                // AM5 (DDR5)
-                { id: 'm_godlike', name: 'MSI MEG X870E GODLIKE', price: 1200, socket: 'AM5', ramType: 'DDR5' },
-                { id: 'm_tomax870', name: 'MSI X870 MAG TOMAHAWK WIFI', price: 230, socket: 'AM5', ramType: 'DDR5' },
-                { id: 'm_aorusb650', name: 'Gigabyte B650 AORUS ELITE AX', price: 180, socket: 'AM5', ramType: 'DDR5' },
-                // AM4 (DDR4)
-                { id: 'm_tomab550', name: 'MSI MAG B550 TOMAHAWK MAX WIFI', price: 150, socket: 'AM4', ramType: 'DDR4' },
-                { id: 'm_aorusb450', name: 'Gigabyte B450 AORUS M', price: 90, socket: 'AM4', ramType: 'DDR4' },
-                // LGA1700 (DDR5 & DDR4)
-                { id: 'm_hero', name: 'ASUS ROG MAXIMUS Z790 HERO', price: 600, socket: 'LGA1700', ramType: 'DDR5' },
-                { id: 'm_tomaz790', name: 'MSI MAG Z790 TOMAHAWK WIFI', price: 240, socket: 'LGA1700', ramType: 'DDR5' },
-                { id: 'm_z690d4', name: 'ASUS Prime Z690-P D4', price: 160, socket: 'LGA1700', ramType: 'DDR4' }
-            ],
-            ram: [
-                dummyItem,
-                // DDR5
-                { id: 'r_96_6400', name: '96GB (2x48GB) DDR5-6400 CL32', price: 350, type: 'DDR5' },
-                { id: 'r_64_6000', name: '64GB (2x32GB) DDR5-6000 CL30', price: 210, type: 'DDR5' },
-                { id: 'r_32_6000', name: '32GB (2x16GB) DDR5-6000 CL30', price: 115, type: 'DDR5' },
-                { id: 'r_16_5200', name: '16GB (2x8GB) DDR5-5200 CL40', price: 65, type: 'DDR5' },
-                // DDR4
-                { id: 'r_32_3600_d4', name: '32GB (2x16GB) DDR4-3600 CL18', price: 75, type: 'DDR4' },
-                { id: 'r_16_3200_d4', name: '16GB (2x8GB) DDR4-3200 CL16', price: 40, type: 'DDR4' }
-            ],
-            storage: [
-                dummyItem,
-                { id: 's_990_4tb', name: 'Samsung 990 Pro 4TB NVMe', price: 320 },
-                { id: 's_990_2tb', name: 'Samsung 990 Pro 2TB NVMe', price: 170 },
-                { id: 's_p3_2tb', name: 'Crucial P3 Plus 2TB NVMe', price: 110 },
-                { id: 's_p3_1tb', name: 'Crucial P3 Plus 1TB NVMe', price: 65 }
-            ],
-            cooling: [
-                dummyItem,
-                { id: 'cool_kraken', name: 'NZXT Kraken Elite 360', price: 280 },
-                { id: 'cool_tryx', name: 'TRYX PANORAMA SE 360mm', price: 250 },
-                { id: 'cool_arctic', name: 'Arctic Liquid Freezer III 360', price: 120 },
-                { id: 'cool_peerless', name: 'Thermalright Peerless Assassin 120', price: 35 },
-                { id: 'cool_stock', name: 'AMD Wraith Stealth (Stock)', price: 0 }
-            ],
-            psu: [
-                dummyItem,
-                { id: 'p_1600i', name: 'Corsair AX1600i', price: 600 },
-                { id: 'p_1000e', name: 'Corsair RM1000e', price: 145 },
-                { id: 'p_850e', name: 'Corsair RM850e', price: 120 },
-                { id: 'p_750e', name: 'Corsair RM750e', price: 100 },
-                { id: 'p_650b', name: 'EVGA 650 B5 650W', price: 75 }
-            ],
-            case: [
-                dummyItem,
-                { id: 'case_nv7', name: 'Phanteks NV7', price: 200 },
-                { id: 'case_evo', name: 'Lian Li O11 Dynamic EVO RGB', price: 160 },
-                { id: 'case_north', name: 'Fractal Design North', price: 140 },
-                { id: 'case_4000d', name: 'Corsair 4000D Airflow', price: 90 },
-                { id: 'case_h510', name: 'NZXT H510', price: 70 }
-            ]
-        };
-
+        // --- 1. Database Variables (Loaded from database.js) ---
         const categories = [
             { key: 'cpu', label: 'CPU' }, { key: 'gpu', label: 'Graphics Card' },
             { key: 'mobo', label: 'Motherboard' }, { key: 'ram', label: 'Memory' },
             { key: 'storage', label: 'Storage' }, { key: 'cooling', label: 'CPU Cooler' },
             { key: 'psu', label: 'Power Supply' }, { key: 'case', label: 'Chassis' }
         ];
-
-        // Auto-Sort all database categories by Performance (Score) or Price
-        Object.keys(db).forEach(catKey => {
-            const items = db[catKey].filter(i => i.id !== 'none');
-            items.sort((a, b) => {
-                const scoreA = a.score || 0;
-                const scoreB = b.score || 0;
-                if (scoreA !== scoreB) return scoreB - scoreA; // Sort by score descending
-                return b.price - a.price; // Fallback: Sort by price descending
-            });
-            db[catKey] = [dummyItem, ...items];
-        });
 
         // --- 2. State & Preset Management ---
         let state = {};
