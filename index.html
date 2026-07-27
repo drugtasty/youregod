@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ULTIMATE BUILD // FPS ESTIMATOR</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -114,6 +115,14 @@
         .buy-btn:active { transform: scale(0.95); }
         .buy-btn:disabled { background-color: #333; color: #666; cursor: not-allowed; }
 
+        /* Theme Buttons */
+        .theme-btn {
+            background: transparent; border: 1px solid var(--border-color);
+            border-radius: 50%; width: 22px; height: 22px; cursor: pointer;
+            transition: transform 0.2s; box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        .theme-btn:hover { transform: scale(1.2); }
+
         /* Stats */
         .stat-block { padding: 20px; border-bottom: 1px solid var(--border-color); }
         .stat-block:last-child { border-bottom: none; }
@@ -174,7 +183,14 @@
                 <p>Config.v8 // Auto-Builder AI // Wattage Analytics</p>
             </div>
             <div style="display: flex; gap: 15px; align-items: center;">
-                <button class="nav-btn" onclick="shareBuild()" id="btn-share" style="border-color: var(--accent); color: var(--accent);">📋 SHARE BUILD</button>
+                <div style="display: flex; gap: 6px; margin-right: 15px;">
+                    <button class="theme-btn" style="background-color: #10b981;" onclick="setTheme('nvidia')" title="Team Green"></button>
+                    <button class="theme-btn" style="background-color: #ef4444;" onclick="setTheme('amd')" title="Team Red"></button>
+                    <button class="theme-btn" style="background-color: #3b82f6;" onclick="setTheme('intel')" title="Team Blue"></button>
+                    <button class="theme-btn" style="background-color: #fde047;" onclick="setTheme('cyberpunk')" title="Cyberpunk"></button>
+                </div>
+                <button class="nav-btn" onclick="searchBenchmarks()" style="border-color: #ef4444; color: #ef4444;">▶️ BENCHMARKS</button>
+                <button class="nav-btn" onclick="shareBuild()" id="btn-share" style="border-color: var(--accent); color: var(--accent);">📋 SHARE</button>
                 <div class="status-indicator">
                     <div class="status-dot"></div>
                     TELEMETRY ACTIVE
@@ -208,6 +224,13 @@
                     <span id="display-price" style="color: var(--accent);">$0</span>
                 </div>
                 
+                <div class="stat-block">
+                    <div class="stat-label">System Balance Analysis</div>
+                    <div style="position: relative; height: 220px; width: 100%; margin-top: 10px;">
+                        <canvas id="balanceChart"></canvas>
+                    </div>
+                </div>
+
                 <div class="stat-block">
                     <div class="stat-label">System Power Draw (Estimated Wattage)</div>
                     <div class="stat-value" id="display-wattage" style="font-size: 1.5rem;">0W / 0W</div>
@@ -629,6 +652,8 @@
             document.getElementById('wattage-bar').style.width = `${wattagePercent}%`;
             document.getElementById('wattage-bar').style.backgroundColor = wattagePercent > 90 ? 'var(--danger)' : '#3b82f6';
 
+            if(window.updateChart) updateChart();
+
             document.getElementById('display-price').innerText = '$' + totalPrice.toLocaleString();
             const overallScore = (gpuScore > 0 && cpuScore > 0) ? Math.floor(1 / ((0.85 / gpuScore) + (0.15 / cpuScore))) : 0;
             document.getElementById('display-score').innerText = overallScore.toLocaleString();
@@ -762,8 +787,99 @@
             });
         }
 
+        // --- 7. New Premium Features ---
+        function setTheme(theme) {
+            const root = document.documentElement;
+            if (theme === 'nvidia') { root.style.setProperty('--accent', '#10b981'); root.style.setProperty('--accent-glow', 'rgba(16, 185, 129, 0.5)'); root.style.setProperty('--bg-panel', 'rgba(10, 15, 10, 0.7)'); }
+            if (theme === 'amd') { root.style.setProperty('--accent', '#ef4444'); root.style.setProperty('--accent-glow', 'rgba(239, 68, 68, 0.5)'); root.style.setProperty('--bg-panel', 'rgba(15, 5, 5, 0.7)'); }
+            if (theme === 'intel') { root.style.setProperty('--accent', '#3b82f6'); root.style.setProperty('--accent-glow', 'rgba(59, 130, 246, 0.5)'); root.style.setProperty('--bg-panel', 'rgba(5, 10, 20, 0.7)'); }
+            if (theme === 'cyberpunk') { root.style.setProperty('--accent', '#fde047'); root.style.setProperty('--accent-glow', 'rgba(253, 224, 71, 0.5)'); root.style.setProperty('--bg-panel', 'rgba(20, 10, 30, 0.8)'); }
+            if(window.radarChart) updateChart();
+        }
+
+        function searchBenchmarks() {
+            const cpu = db.cpu.find(c => c.id === state.cpu);
+            const gpu = db.gpu.find(g => g.id === state.gpu);
+            if(cpu && gpu && cpu.id !== 'none' && gpu.id !== 'none') {
+                const query = `${cpu.name.replace('AMD ', '').replace('Intel ', '')} ${gpu.name.replace('NVIDIA ', '').replace('AMD ', '')} 1440p gaming benchmark`;
+                window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank');
+            } else {
+                alert("Please select a CPU and Graphics Card first!");
+            }
+        }
+
+        let radarChart;
+        function initChart() {
+            const ctx = document.getElementById('balanceChart').getContext('2d');
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Gaming (GPU)', 'Compute (CPU)', 'Memory', 'Efficiency', 'Value (PtP)'],
+                    datasets: [{
+                        label: 'System Score',
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderColor: '#10b981',
+                        pointBackgroundColor: '#10b981',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    scales: { 
+                        r: { 
+                            angleLines: { color: 'rgba(255,255,255,0.1)' }, 
+                            grid: { color: 'rgba(255,255,255,0.1)' }, 
+                            pointLabels: { color: '#888', font: { family: 'JetBrains Mono', size: 10 } }, 
+                            ticks: { display: false, max: 100, min: 0 } 
+                        } 
+                    },
+                    plugins: { legend: { display: false } },
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function updateChart() {
+            if(!radarChart) return;
+            const gpu = db.gpu.find(g => g.id === state.gpu) || dummyItem;
+            const cpu = db.cpu.find(c => c.id === state.cpu) || dummyItem;
+            const ram = db.ram.find(r => r.id === state.ram) || dummyItem;
+            
+            const gpuScore = Math.min((gpu.score / 41000) * 100, 100);
+            const cpuScore = Math.min((cpu.score / 24000) * 100, 100);
+            
+            let ramScore = 0;
+            if(ram.name) {
+                if(ram.name.includes('128GB') || ram.name.includes('96GB')) ramScore = 100;
+                else if(ram.name.includes('64GB')) ramScore = 80;
+                else if(ram.name.includes('32GB')) ramScore = 60;
+                else if(ram.name.includes('16GB')) ramScore = 40;
+                else ramScore = 20;
+            }
+            
+            const effScore = Math.max(100 - (estimateWattage() / 10), 10);
+            
+            let valueScore = 0;
+            const totalCost = categories.reduce((sum, cat) => {
+                const item = db[cat.key].find(i => i.id === state[cat.key]);
+                return sum + (item ? item.price : 0);
+            }, 0);
+            if(totalCost > 0 && gpu.score > 0) valueScore = Math.min(((gpu.score + cpu.score) / totalCost) * 1.5, 100);
+
+            radarChart.data.datasets[0].data = [gpuScore, cpuScore, ramScore, effScore, valueScore];
+            
+            // Match theme color
+            const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+            radarChart.data.datasets[0].borderColor = accentColor;
+            radarChart.data.datasets[0].pointBackgroundColor = accentColor;
+            radarChart.data.datasets[0].backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--accent-glow').trim();
+            
+            radarChart.update();
+        }
+
         // --- Init ---
         initUI();
+        initChart();
         updatePresetDropdown();
         updateTelemetry();
         if (window.innerWidth <= 900) document.getElementById('view-builder').style.display = 'grid'; 
