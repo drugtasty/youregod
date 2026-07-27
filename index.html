@@ -70,6 +70,22 @@
         select:hover { border-color: var(--border-hover); }
         select:focus { border-color: var(--text-secondary); }
         
+        /* Buy Button */
+        .buy-btn {
+            background-color: #ffffff;
+            color: #000000;
+            border: none;
+            border-radius: 4px;
+            padding: 0 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .buy-btn:hover { background-color: #ef4444; color: #ffffff; }
+        .buy-btn:active { transform: scale(0.95); }
+
         /* Stats */
         .stat-block { padding: 20px; border-bottom: 1px solid var(--border-color); }
         .stat-block:last-child { border-bottom: none; }
@@ -271,9 +287,12 @@
                         <div class="part-category">${cat.label}</div>
                         <div class="part-price" id="price-${cat.key}">$0</div>
                     </div>
-                    <select id="select-${cat.key}" onchange="handleSelect('${cat.key}')">
-                        ${optionsHTML}
-                    </select>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="select-${cat.key}" onchange="handleSelect('${cat.key}')" style="flex: 1;">
+                            ${optionsHTML}
+                        </select>
+                        <button class="buy-btn" onclick="buyItem('${cat.key}')">BUY</button>
+                    </div>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', html);
@@ -322,6 +341,16 @@
         }
 
         // --- 5. Main Logic Loop ---
+        function buyItem(categoryKey) {
+            const selectedId = state[categoryKey];
+            const item = db[categoryKey].find(i => i.id === selectedId);
+            if (item) {
+                // Opens a new tab searching Amazon for the exact part name
+                const searchUrl = `https://www.amazon.com/s?k=${encodeURIComponent(item.name)}`;
+                window.open(searchUrl, '_blank');
+            }
+        }
+
         function handleSelect(categoryKey) {
             const selectEl = document.getElementById(`select-${categoryKey}`);
             state[categoryKey] = selectEl.value;
