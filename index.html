@@ -401,7 +401,7 @@
             { key: 'cpu', label: 'CPU' }, { key: 'gpu', label: 'Graphics Card' },
             { key: 'mobo', label: 'Motherboard' }, { key: 'ram', label: 'Memory' },
             { key: 'storage', label: 'Storage' }, { key: 'cooling', label: 'CPU Cooler' },
-            { key: 'psu', label: 'Power Supply' }, { key: 'case', label: 'Chassis' },
+            { key: 'psu', label: 'Power Supply' }, { key: 'case', label: 'Case' },
             { key: 'fans', label: 'Case Fans' }, { key: 'accessories', label: 'Accessories' },
             { key: 'monitor', label: 'Monitor' }
         ];
@@ -420,7 +420,8 @@
         // --- 2. State & Preset Management ---
         let state = {};
         let filterState = {};
-        categories.forEach(cat => { state[cat.key] = 'none'; filterState[cat.key] = 'all'; });
+        let qtyState = {};
+        categories.forEach(cat => { state[cat.key] = 'none'; filterState[cat.key] = 'all'; qtyState[cat.key] = 1; });
         let aiInterventionMessage = ""; // Holds dynamic compatibility warnings
 
         let savedCustomPresets = [];
@@ -456,7 +457,7 @@
             });
             const score = (gpuS > 0 && cpuS > 0) ? Math.floor(1 / ((0.85 / gpuS) + (0.15 / cpuS))) : 0;
             
-            savedCustomPresets.push({ name, state: { ...state }, price, score, timestamp: Date.now() });
+            savedCustomPresets.push({ name, state: { ...state }, qtyState: { ...qtyState }, price, score, timestamp: Date.now() });
             localStorage.setItem('savedCustomPresets', JSON.stringify(savedCustomPresets));
             
             nameInput.value = ''; updatePresetDropdown();
@@ -470,7 +471,10 @@
             if (val === 'custom') return;
             const preset = savedCustomPresets[parseInt(val)];
             if (preset) {
-                categories.forEach(cat => state[cat.key] = preset.state[cat.key]);
+                categories.forEach(cat => {
+                    state[cat.key] = preset.state[cat.key];
+                    qtyState[cat.key] = preset.qtyState ? (preset.qtyState[cat.key] || 1) : 1;
+                });
                 aiInterventionMessage = "";
                 refreshDropdowns();
                 updateTelemetry();
@@ -508,9 +512,10 @@
                             </div>
                         </div>
                         ${filterHTML}
-                        <div style="display: flex; gap: 8px;">
+                        <div style="display: flex; gap: 8px; align-items: center;">
                             <select id="select-${cat.key}" onchange="handleSelect('${cat.key}')" style="flex: 1;"></select>
-                            <button id="buy-${cat.key}" class="buy-btn" onclick="buyItem('${cat.key}')" disabled>BUY</button>
+                            <input type="number" id="qty-${cat.key}" min="1" max="10" value="${qtyState[cat.key] || 1}" style="width: 45px; height: 38px; text-align: center; background: #000; color: #fff; border: 1px solid var(--border-color); border-radius: 4px; outline: none;" onchange="handleSelect('${cat.key}')" title="Quantity">
+                            <button id="buy-${cat.key}" class="buy-btn" onclick="buyItem('${cat.key}')" disabled style="height: 38px;">BUY</button>
                         </div>
                     </div>
                 `;
@@ -641,6 +646,13 @@
             const selectEl = document.getElementById(`select-${categoryKey}`);
             state[categoryKey] = selectEl.value;
             
+            const qtyEl = document.getElementById(`qty-${categoryKey}`);
+            if (qtyEl) {
+                let qty = parseInt(qtyEl.value) || 1;
+                if (qty < 1) qty = 1;
+                qtyState[categoryKey] = qty;
+            }
+            
             aiInterventionMessage = ""; // Clear old interventions
             resolveConflicts(); // Check for bad interactions (e.g. changing CPU when a Mobo is picked)
             refreshDropdowns(); // Rebuild menus to hide incompatible parts
@@ -769,6 +781,7 @@
 
             categories.forEach(cat => {
                 const item = db[cat.key].find(i => i.id === state[cat.key]) || dummyItem;
+                const qty = qtyState[cat.key] || 1;
                 if (item.id === 'none') {
                     if (['cpu', 'gpu', 'mobo', 'ram', 'storage', 'cooling', 'psu', 'case'].includes(cat.key)) {
                         missingCount++;
@@ -776,14 +789,15 @@
                     document.getElementById(`price-${cat.key}`).innerText = '-';
                     document.getElementById(`buy-${cat.key}`).disabled = true;
                 } else {
-                    totalPrice += item.price;
-                    document.getElementById(`price-${cat.key}`).innerText = '$' + item.price;
+                    const itemTotal = item.price * qty;
+                    totalPrice += itemTotal;
+                    document.getElementById(`price-${cat.key}`).innerText = '$' + itemTotal + (qty > 1 ? ` (${qty}x)` : '');
                     document.getElementById(`buy-${cat.key}`).disabled = false;
                 }
                 if (cat.key === 'gpu') { gpuScore = item.score; if (item.name.includes('Radeon')) isAMD = true; }
                 if (cat.key === 'cpu') cpuScore = item.score;
                 if (cat.key === 'psu') {
-                    psuPrice = item.price;
+                    psuPrice = item.price * qty;
                     psuWatts = parseInt(item.name.match(/\d+W/)?.[0] || item.name.match(/\d+/)?.[0] || "500");
                 }
             });
@@ -879,9 +893,11 @@
             let total = 0;
             categories.forEach(cat => {
                 const item = db[cat.key].find(i => i.id === state[cat.key]);
+                const qty = qtyState[cat.key] || 1;
                 if (item && item.id !== 'none') {
-                    text += `${cat.label}: ${item.name} ($${item.price})\n`;
-                    total += item.price;
+                    const itemTotal = item.price * qty;
+                    text += `${cat.label}: ${item.name}${qty > 1 ? ` (x${qty})` : ''} ($${itemTotal})\n`;
+                    total += itemTotal;
                 }
             });
             text += `\nTotal Price: $${total.toLocaleString()}\nGenerated via Ultimate Build (fps-estimator)`;
@@ -912,8 +928,12 @@
             let totalPrice = 0;
             categories.forEach(cat => {
                 const item = db[cat.key].find(i => i.id === state[cat.key]) || dummyItem;
-                buildContext += `- ${cat.label}: ${item.name} ($${item.price})\n`;
-                totalPrice += item.price;
+                const qty = qtyState[cat.key] || 1;
+                if (item.id !== 'none') {
+                    const itemTotal = item.price * qty;
+                    buildContext += `- ${cat.label}: ${item.name}${qty > 1 ? ` (x${qty})` : ''} ($${itemTotal})\n`;
+                    totalPrice += itemTotal;
+                }
             });
             buildContext += `Total Price: $${totalPrice}\n\nUser Question: ${prompt}`;
 
