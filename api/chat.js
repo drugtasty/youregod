@@ -22,10 +22,11 @@ module.exports = async (req, res) => {
             },
             body: JSON.stringify({
                 model: "llama-3.1-8b-instant",
+                max_tokens: 60,
                 messages: [
                     {
                         role: "system",
-                        content: "You are an expert PC builder AI assistant. Be extremely concise. Use 1-2 sentence paragraphs maximum. Do not type long blocks of text. Analyze the user's current build context and prioritize advice on reducing hardware bottlenecks. Recommend specific parts to balance their build. Do not use markdown."
+                        content: "You are an expert PC builder AI assistant. YOU MUST RESPOND IN 2 SENTENCES OR LESS. Keep your answer under 40 words total. Analyze the user's current build context and prioritize advice on reducing hardware bottlenecks. Recommend specific parts to balance their build. Do not use markdown."
                     },
                     {
                         role: "user",
