@@ -239,8 +239,9 @@
         const state = {};
         
         categories.forEach(cat => {
-            // Default to first item if none saved
-            state[cat.key] = savedState[cat.key] || db[cat.key][0].id; 
+            const savedId = savedState[cat.key];
+            const exists = db[cat.key].some(item => item.id === savedId);
+            state[cat.key] = exists ? savedId : db[cat.key][0].id; 
         });
 
         const container = document.getElementById('builder-container');
