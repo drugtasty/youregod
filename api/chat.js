@@ -14,14 +14,14 @@ export default async function handler(req, res) {
     }
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 system_instruction: { 
-                    parts: { 
+                    parts: [{ 
                         text: "You are an expert PC builder AI assistant embedded in a PC building website. Be extremely helpful, concise, and offer concrete advice based on the user's current build context. Recommend specific parts from their context or general PC building best practices. Format your text with short paragraphs. Don't use markdown." 
-                    } 
+                    }] 
                 },
                 contents: [{ parts: [{ text: buildContext }] }]
             })
