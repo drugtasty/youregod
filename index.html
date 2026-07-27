@@ -9,8 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #000000; --bg-panel: #070707; --bg-hover: #0a0a0a;
-            --border-color: #1a1a1a; --border-hover: #333333;
+            --bg-base: #000000; --bg-panel: rgba(10, 10, 10, 0.7); --bg-hover: rgba(25, 25, 25, 0.9);
+            --border-color: rgba(255, 255, 255, 0.1); --border-hover: rgba(255, 255, 255, 0.2);
             --text-primary: #ffffff; --text-secondary: #888888;
             --accent: #10b981; --accent-glow: rgba(16, 185, 129, 0.5);
             --danger: #ef4444; --warning: #f59e0b;
@@ -18,8 +18,9 @@
 
         body {
             margin: 0; padding: 0; font-family: 'Inter', sans-serif;
-            background-color: var(--bg-base); color: var(--text-primary);
-            min-height: 100vh; display: flex; justify-content: center;
+            background: radial-gradient(circle at 50% 0%, #111 0%, #000 100%);
+            color: var(--text-primary); min-height: 100vh;
+            display: flex; justify-content: center;
             padding-top: 20px; padding-bottom: 40px;
         }
 
@@ -52,11 +53,16 @@
         @media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } }
 
         /* Panels */
-        .panel { background-color: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; }
-        .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border-color); font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; color: var(--text-secondary); background: var(--bg-panel); text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between;}
+        .panel { 
+            background-color: var(--bg-panel); border: 1px solid var(--border-color); 
+            border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; 
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border-color); font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; color: var(--text-secondary); background: rgba(0,0,0,0.3); text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between;}
         
         .part-item { padding: 16px 20px; border-bottom: 1px solid var(--border-color); transition: all 0.2s ease; }
-        .part-item:hover { background-color: var(--bg-hover); }
+        .part-item:hover { background-color: var(--bg-hover); transform: translateX(4px); border-left: 2px solid var(--accent); }
         .part-item:last-child { border-bottom: none; }
 
         .part-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
@@ -165,11 +171,14 @@
         <header>
             <div class="header-title">
                 <h1>Ultimate Build</h1>
-                <p>Config.v5 // Compatibility Engine // PtP Analytics</p>
+                <p>Config.v8 // Auto-Builder AI // Wattage Analytics</p>
             </div>
-            <div class="status-indicator">
-                <div class="status-dot"></div>
-                TELEMETRY ACTIVE
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <button class="nav-btn" onclick="shareBuild()" id="btn-share" style="border-color: var(--accent); color: var(--accent);">📋 SHARE BUILD</button>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    TELEMETRY ACTIVE
+                </div>
             </div>
         </header>
 
@@ -199,6 +208,14 @@
                     <span id="display-price" style="color: var(--accent);">$0</span>
                 </div>
                 
+                <div class="stat-block">
+                    <div class="stat-label">System Power Draw (Estimated Wattage)</div>
+                    <div class="stat-value" id="display-wattage" style="font-size: 1.5rem;">0W / 0W</div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="wattage-bar" style="background-color: #3b82f6;"></div>
+                    </div>
+                </div>
+
                 <div class="stat-block">
                     <div class="stat-label">3DMark Time Spy Estimate</div>
                     <div class="stat-value score" id="display-score">0</div>
@@ -392,6 +409,7 @@
         function resolveConflicts() {
             const cpu = db.cpu.find(c => c.id === state.cpu);
             const mobo = db.mobo.find(m => m.id === state.mobo);
+            const psu = db.psu.find(p => p.id === state.psu);
             
             // 1. Motherboard vs CPU Socket
             if (cpu && cpu.id !== 'none' && mobo && mobo.id !== 'none') {
@@ -408,6 +426,16 @@
                 if (updatedMobo.ramType !== ram.type) {
                     state.ram = 'none';
                     aiInterventionMessage = `AI AUTO-FIX: Your selected RAM was incompatible with the motherboard's memory standard (${updatedMobo.ramType}). The memory was reset.`;
+                }
+            }
+
+            // 3. Power Supply Check
+            if (psu && psu.id !== 'none' && aiInterventionMessage === "") {
+                const estDraw = estimateWattage();
+                const psuWatts = parseInt(psu.name.match(/\d+W/)?.[0] || psu.name.match(/\d+/)?.[0] || "500");
+                if (estDraw > psuWatts) {
+                    state.psu = 'none';
+                    aiInterventionMessage = `AI AUTO-FIX: System power draw (${estDraw}W) exceeded the capacity of your selected ${psuWatts}W Power Supply. The PSU was reset to prevent hardware damage.`;
                 }
             }
         }
@@ -514,7 +542,29 @@
             if (view === 'compare') renderCompareGrid();
         }
 
-        function runAIAssistant(missingCount, gpuScore, cpuScore, totalPrice, psuPrice) {
+        function estimateWattage() {
+            let watts = 50; // base system (mobo, fans, ram, ssd)
+            const gpu = db.gpu.find(i => i.id === state.gpu);
+            const cpu = db.cpu.find(i => i.id === state.cpu);
+            
+            if (gpu && gpu.id !== 'none') {
+                if (gpu.name.includes('4090') || gpu.name.includes('5090')) watts += 450;
+                else if (gpu.name.includes('3090') || gpu.name.includes('7900 XTX')) watts += 350;
+                else if (gpu.name.includes('80') || gpu.name.includes('7900') || gpu.name.includes('900')) watts += 280;
+                else if (gpu.name.includes('70')) watts += 220;
+                else if (gpu.name.includes('60')) watts += 130;
+                else watts += 150; // default generic
+            }
+            if (cpu && cpu.id !== 'none') {
+                if (cpu.name.includes('i9') || cpu.name.includes('9950') || cpu.name.includes('9900')) watts += 200;
+                else if (cpu.name.includes('i7') || cpu.name.includes('x3d') || cpu.name.includes('7900')) watts += 120;
+                else if (cpu.name.includes('i5') || cpu.name.includes('7600') || cpu.name.includes('5600')) watts += 65;
+                else watts += 65;
+            }
+            return watts;
+        }
+
+        function runAIAssistant(missingCount, gpuScore, cpuScore, totalPrice, psuPrice, tdp, psuMax) {
             const panel = document.getElementById('ai-panel');
             const text = document.getElementById('ai-text');
             panel.className = 'ai-panel'; // reset
@@ -527,6 +577,11 @@
             }
 
             if (missingCount > 0) { text.innerText = `Please select all components. Missing: ${missingCount} parts.`; return; }
+            if (tdp > psuMax * 0.9) {
+                panel.className = 'ai-panel danger';
+                text.innerText = `CRITICAL WARNING: Your system draws ${tdp}W, which is dangerously close to your ${psuMax}W PSU limit. Under heavy load, your PC will instantly shut down. Buy a bigger Power Supply!`;
+                return;
+            }
             if (gpuScore > 30000 && cpuScore < 15000) {
                 panel.className = 'ai-panel danger';
                 text.innerText = "CRITICAL WARNING: Your high-end graphics card is severely bottlenecked by your weak CPU. You will lose massive frames at 1080p and 1440p. Upgrade your CPU!";
@@ -547,7 +602,7 @@
 
         function updateTelemetry() {
             let totalPrice = 0; let gpuScore = 0; let cpuScore = 0; let psuPrice = 0;
-            let isAMD = false; let missingCount = 0;
+            let isAMD = false; let missingCount = 0; let psuWatts = 0;
 
             categories.forEach(cat => {
                 const item = db[cat.key].find(i => i.id === state[cat.key]) || dummyItem;
@@ -562,8 +617,17 @@
                 }
                 if (cat.key === 'gpu') { gpuScore = item.score; if (item.name.includes('Radeon')) isAMD = true; }
                 if (cat.key === 'cpu') cpuScore = item.score;
-                if (cat.key === 'psu') psuPrice = item.price;
+                if (cat.key === 'psu') {
+                    psuPrice = item.price;
+                    psuWatts = parseInt(item.name.match(/\d+W/)?.[0] || item.name.match(/\d+/)?.[0] || "500");
+                }
             });
+
+            const tdp = estimateWattage();
+            document.getElementById('display-wattage').innerText = `${tdp}W / ${psuWatts || 0}W Limit`;
+            const wattagePercent = psuWatts > 0 ? Math.min((tdp / psuWatts) * 100, 100) : 0;
+            document.getElementById('wattage-bar').style.width = `${wattagePercent}%`;
+            document.getElementById('wattage-bar').style.backgroundColor = wattagePercent > 90 ? 'var(--danger)' : '#3b82f6';
 
             document.getElementById('display-price').innerText = '$' + totalPrice.toLocaleString();
             const overallScore = (gpuScore > 0 && cpuScore > 0) ? Math.floor(1 / ((0.85 / gpuScore) + (0.15 / cpuScore))) : 0;
@@ -589,7 +653,27 @@
                 document.getElementById('label-4k-rt').innerText = preset === 'low' ? 'Ray Tracing Off' : '4K Path Tracing';
             }
 
-            runAIAssistant(missingCount, gpuScore, cpuScore, totalPrice, psuPrice);
+            runAIAssistant(missingCount, gpuScore, cpuScore, totalPrice, psuPrice, tdp, psuWatts);
+        }
+
+        function shareBuild() {
+            let text = "🛠️ MY ULTIMATE PC BUILD 🛠️\n\n";
+            let total = 0;
+            categories.forEach(cat => {
+                const item = db[cat.key].find(i => i.id === state[cat.key]);
+                if (item && item.id !== 'none') {
+                    text += `${cat.label}: ${item.name} ($${item.price})\n`;
+                    total += item.price;
+                }
+            });
+            text += `\nTotal Price: $${total.toLocaleString()}\nGenerated via Ultimate Build (fps-estimator)`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('btn-share');
+                const orig = btn.innerText;
+                btn.innerText = "✅ COPIED TO CLIPBOARD!";
+                setTimeout(() => btn.innerText = orig, 2000);
+            });
         }
 
         function handleAIPrompt() {
