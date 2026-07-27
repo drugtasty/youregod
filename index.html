@@ -145,30 +145,37 @@
 
                 <div class="stat-block">
                     <div class="stat-label" style="margin-bottom: 15px;">In-Game FPS Estimator (DLSS Quality)</div>
-                    <div class="game-select-container">
-                        <select id="game-selector" onchange="updateTelemetry()">
+                    <div class="game-select-container" style="display: flex; gap: 10px;">
+                        <select id="game-selector" onchange="updateTelemetry()" style="flex: 2;">
                             <option value="cyberpunk">Cyberpunk 2077</option>
                             <option value="warzone">Call of Duty: Warzone 2.0</option>
                             <option value="msfs">Microsoft Flight Simulator</option>
                             <option value="cs2">Counter-Strike 2</option>
+                            <option value="fortnite">Fortnite</option>
+                            <option value="valorant">Valorant</option>
+                            <option value="roblox">Roblox</option>
+                        </select>
+                        <select id="preset-selector" onchange="updateTelemetry()" style="flex: 1;">
+                            <option value="ultra">Ultra / High</option>
+                            <option value="low">Competitive / Low</option>
                         </select>
                     </div>
                     
                     <div class="fps-grid">
                         <div class="fps-card">
-                            <div class="fps-res">1080p High</div>
+                            <div class="fps-res" id="label-1080">1080p High</div>
                             <div class="fps-val" id="fps-1080">0 <span>FPS</span></div>
                         </div>
                         <div class="fps-card">
-                            <div class="fps-res">1440p Ultra</div>
+                            <div class="fps-res" id="label-1440">1440p Ultra</div>
                             <div class="fps-val" id="fps-1440">0 <span>FPS</span></div>
                         </div>
                         <div class="fps-card">
-                            <div class="fps-res">4K Ultra</div>
+                            <div class="fps-res" id="label-4k">4K Ultra</div>
                             <div class="fps-val" id="fps-4k">0 <span>FPS</span></div>
                         </div>
                         <div class="fps-card" style="border-color: #333;">
-                            <div class="fps-res" style="color: #ef4444;">4K Path Tracing</div>
+                            <div class="fps-res" id="label-4k-rt" style="color: #ef4444;">4K Path Tracing</div>
                             <div class="fps-val" id="fps-4k-rt">0 <span>FPS</span></div>
                         </div>
                     </div>
@@ -271,13 +278,16 @@
         // --- 4. Game Profiles & FPS Math ---
         // Base FPS is benchmarked roughly against an RTX 4090 (Score: 36000) and 7800X3D (Score: 13500)
         const gameProfiles = {
-            cyberpunk: { name: 'Cyberpunk 2077', base1080: 210, base1440: 160, base4k: 95, base4kRT: 55, cpuLimit: 240 },
-            warzone: { name: 'Call of Duty: Warzone', base1080: 310, base1440: 250, base4k: 160, base4kRT: 0, cpuLimit: 350 },
-            msfs: { name: 'Microsoft Flight Simulator', base1080: 140, base1440: 120, base4k: 85, base4kRT: 0, cpuLimit: 150 },
-            cs2: { name: 'Counter-Strike 2', base1080: 750, base1440: 600, base4k: 350, base4kRT: 0, cpuLimit: 900 }
+            cyberpunk: { name: 'Cyberpunk 2077', base1080: 210, base1440: 160, base4k: 95, base4kRT: 55, cpuLimit: 240, lowMult: 1.8 },
+            warzone: { name: 'Call of Duty: Warzone', base1080: 310, base1440: 250, base4k: 160, base4kRT: 0, cpuLimit: 350, lowMult: 1.6 },
+            msfs: { name: 'Microsoft Flight Simulator', base1080: 140, base1440: 120, base4k: 85, base4kRT: 0, cpuLimit: 150, lowMult: 1.5 },
+            cs2: { name: 'Counter-Strike 2', base1080: 750, base1440: 600, base4k: 350, base4kRT: 0, cpuLimit: 900, lowMult: 1.3 },
+            fortnite: { name: 'Fortnite', base1080: 350, base1440: 280, base4k: 160, base4kRT: 0, cpuLimit: 450, lowMult: 2.2 },
+            valorant: { name: 'Valorant', base1080: 800, base1440: 700, base4k: 450, base4kRT: 0, cpuLimit: 1000, lowMult: 1.2 },
+            roblox: { name: 'Roblox', base1080: 240, base1440: 240, base4k: 240, base4kRT: 0, cpuLimit: 500, lowMult: 1.0 }
         };
 
-        function calculateFPS(gameKey, gpuScore, cpuScore, isAMD) {
+        function calculateFPS(gameKey, preset, gpuScore, cpuScore, isAMD) {
             const game = gameProfiles[gameKey];
             const gpuRatio = gpuScore / 36000; // Relative to RTX 4090
             const cpuRatio = cpuScore / 13500; // Relative to 7800X3D
@@ -285,14 +295,26 @@
             // X3D processors get a massive gaming boost that TimeSpy doesn't capture well, so artificially bump CPU ratio
             const adjustedCpuRatio = (state.cpu.includes('x3d') || state.cpu.includes('X3D')) ? cpuRatio * 1.3 : cpuRatio;
 
-            let fps1080 = Math.floor(Math.min(game.base1080 * gpuRatio, game.cpuLimit * adjustedCpuRatio));
-            let fps1440 = Math.floor(game.base1440 * gpuRatio);
-            let fps4k = Math.floor(game.base4k * gpuRatio);
+            const mult = preset === 'low' ? game.lowMult : 1.0;
+            const cpuLimitCurrent = game.cpuLimit * adjustedCpuRatio * (preset === 'low' ? 1.2 : 1.0);
+
+            let fps1080 = Math.floor(Math.min(game.base1080 * gpuRatio * mult, cpuLimitCurrent));
+            let fps1440 = Math.floor(Math.min(game.base1440 * gpuRatio * mult, cpuLimitCurrent * 1.1));
+            let fps4k = Math.floor(game.base4k * gpuRatio * mult);
             let fps4kRT = game.base4kRT > 0 ? Math.floor(game.base4kRT * gpuRatio) : 0;
 
+            if (preset === 'low') fps4kRT = 0; // RT disabled on low
+
             // Penalty for AMD GPUs in heavy Path Tracing (RTX Overdrive)
-            if (isAMD && game.base4kRT > 0) {
+            if (isAMD && fps4kRT > 0) {
                 fps4kRT = Math.floor(fps4kRT * 0.4); 
+            }
+
+            // Roblox cap
+            if (gameKey === 'roblox') {
+                fps1080 = Math.min(fps1080, 240);
+                fps1440 = Math.min(fps1440, 240);
+                fps4k = Math.min(fps4k, 240);
             }
 
             return { fps1080, fps1440, fps4k, fps4kRT };
@@ -334,16 +356,23 @@
 
             // Update FPS
             const gameKey = document.getElementById('game-selector').value;
-            const fps = calculateFPS(gameKey, gpuScore, cpuScore, isAMD);
+            const preset = document.getElementById('preset-selector').value;
+            const fps = calculateFPS(gameKey, preset, gpuScore, cpuScore, isAMD);
             
             document.getElementById('fps-1080').innerHTML = `${fps.fps1080} <span>FPS</span>`;
             document.getElementById('fps-1440').innerHTML = `${fps.fps1440} <span>FPS</span>`;
             document.getElementById('fps-4k').innerHTML = `${fps.fps4k} <span>FPS</span>`;
             
+            document.getElementById('label-1080').innerText = preset === 'low' ? '1080p Low' : '1080p High';
+            document.getElementById('label-1440').innerText = preset === 'low' ? '1440p Low' : '1440p Ultra';
+            document.getElementById('label-4k').innerText = preset === 'low' ? '4K Low' : '4K Ultra';
+
             if (fps.fps4kRT > 0) {
                 document.getElementById('fps-4k-rt').innerHTML = `${fps.fps4kRT} <span>FPS</span>`;
+                document.getElementById('label-4k-rt').innerText = '4K Path Tracing';
             } else {
                 document.getElementById('fps-4k-rt').innerHTML = `N/A`;
+                document.getElementById('label-4k-rt').innerText = preset === 'low' ? 'Ray Tracing Off' : '4K Path Tracing';
             }
         }
 
