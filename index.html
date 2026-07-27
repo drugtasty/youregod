@@ -9,22 +9,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #000000;
-            --bg-panel: #070707;
-            --bg-hover: #0a0a0a;
-            --border-color: #1a1a1a;
-            --border-hover: #333333;
-            --text-primary: #ffffff;
-            --text-secondary: #888888;
-            --accent: #10b981;
-            --accent-glow: rgba(16, 185, 129, 0.5);
-            --danger: #ef4444;
-            --warning: #f59e0b;
+            --bg-base: #000000; --bg-panel: #070707; --bg-hover: #0a0a0a;
+            --border-color: #1a1a1a; --border-hover: #333333;
+            --text-primary: #ffffff; --text-secondary: #888888;
+            --accent: #10b981; --accent-glow: rgba(16, 185, 129, 0.5);
+            --danger: #ef4444; --warning: #f59e0b;
         }
 
         body {
-            margin: 0; padding: 0;
-            font-family: 'Inter', -apple-system, sans-serif;
+            margin: 0; padding: 0; font-family: 'Inter', sans-serif;
             background-color: var(--bg-base); color: var(--text-primary);
             min-height: 100vh; display: flex; justify-content: center;
             padding-top: 20px; padding-bottom: 40px;
@@ -42,23 +35,17 @@
             background: transparent; color: var(--text-secondary);
             border: 1px solid var(--border-color); border-radius: 4px;
             padding: 10px 20px; font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem; font-weight: 700; cursor: pointer;
-            transition: all 0.2s ease;
+            font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease;
         }
         .nav-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
         .nav-btn.active { background: var(--bg-panel); color: var(--text-primary); border-color: var(--accent); box-shadow: 0 0 10px rgba(16,185,129,0.1); }
 
-        header {
-            margin-bottom: 30px; display: flex; justify-content: space-between;
-            align-items: flex-end;
-        }
-
+        header { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
         .header-title h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 5px 0; }
         .header-title p { color: var(--text-secondary); margin: 0; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
 
         .status-indicator { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; color: var(--text-secondary); }
         .status-dot { width: 8px; height: 8px; background-color: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent-glow); animation: pulse 2s infinite;}
-        
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
         .grid-layout { display: grid; grid-template-columns: 1fr 400px; gap: 24px; }
@@ -81,11 +68,11 @@
             width: 100%; background-color: #000000; color: #ffffff;
             border: 1px solid var(--border-color); padding: 10px 12px;
             font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 500;
-            border-radius: 4px; appearance: none; outline: none; cursor: pointer;
-            transition: border-color 0.2s;
+            border-radius: 4px; appearance: none; outline: none; cursor: pointer; transition: border-color 0.2s;
         }
         select:hover { border-color: var(--border-hover); }
         select:focus { border-color: var(--text-secondary); }
+        select option:disabled { color: #555; font-style: italic; }
         
         input[type="text"] {
             background-color: #000; color: #fff; border: 1px solid var(--border-color);
@@ -103,16 +90,9 @@
         
         /* Buy Button */
         .buy-btn {
-            background-color: #ffffff;
-            color: #000000;
-            border: none;
-            border-radius: 4px;
-            padding: 0 16px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            background-color: #ffffff; color: #000000; border: none; border-radius: 4px;
+            padding: 0 16px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+            font-weight: 700; cursor: pointer; transition: all 0.2s ease;
         }
         .buy-btn:hover { background-color: #ef4444; color: #ffffff; }
         .buy-btn:active { transform: scale(0.95); }
@@ -125,60 +105,41 @@
         
         .stat-value { font-size: 2.2rem; font-weight: 700; color: var(--text-primary); letter-spacing: -1px; }
         .stat-value.score { color: var(--accent); }
-        .stat-value span.sub { font-size: 0.85rem; font-weight: 400; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; letter-spacing: normal;}
         
         .progress-track { width: 100%; height: 4px; background-color: var(--border-color); border-radius: 2px; margin-top: 15px; overflow: hidden; }
         .progress-fill { height: 100%; background-color: var(--accent); width: 0%; transition: width 0.5s ease-out; }
 
         /* FPS Grid */
-        .fps-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 16px;
-        }
-        
-        .fps-card {
-            background-color: #000; border: 1px solid var(--border-color);
-            border-radius: 4px; padding: 12px; display: flex; flex-direction: column; gap: 4px;
-        }
+        .fps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+        .fps-card { background-color: #000; border: 1px solid var(--border-color); border-radius: 4px; padding: 12px; display: flex; flex-direction: column; gap: 4px; }
         .fps-res { font-size: 0.65rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
         .fps-val { font-size: 1.5rem; font-weight: 700; color: #fff; }
         .fps-val span { font-size: 0.8rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-weight: 400; }
 
         /* AI Assistant */
         .ai-panel {
-            background-color: rgba(16, 185, 129, 0.05);
-            border-left: 3px solid var(--accent);
+            background-color: rgba(16, 185, 129, 0.05); border-left: 3px solid var(--accent);
             padding: 15px; margin: 20px; border-radius: 0 4px 4px 0;
             font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);
+            transition: all 0.3s ease;
         }
         .ai-panel strong { color: var(--text-primary); font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 5px;}
         .ai-panel.warning { border-color: var(--warning); background-color: rgba(245, 158, 11, 0.05); }
         .ai-panel.danger { border-color: var(--danger); background-color: rgba(239, 68, 68, 0.05); }
+        .ai-panel.intervention { border-color: #3b82f6; background-color: rgba(59, 130, 246, 0.05); }
 
         /* Compare View */
-        .compare-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
-        }
+        .compare-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         @media (max-width: 800px) { .compare-grid { grid-template-columns: 1fr; } }
-
-        .compare-card {
-            background-color: var(--bg-panel); border: 1px solid var(--border-color);
-            border-radius: 6px; padding: 24px; display: flex; flex-direction: column;
-            transition: border-color 0.2s;
-        }
+        .compare-card { background-color: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 6px; padding: 24px; display: flex; flex-direction: column; transition: border-color 0.2s; }
         .compare-card:hover { border-color: var(--text-secondary); }
         .compare-card h3 { margin: 0 0 10px 0; font-size: 1.2rem; }
         .compare-price { font-family: 'JetBrains Mono', monospace; font-size: 2rem; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
-        
         .compare-ptp { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
         .compare-ptp span { color: #fff; font-weight: 700; }
-
         .compare-specs { list-style: none; padding: 0; margin: 0 0 20px 0; }
         .compare-specs li { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
         .compare-specs li::before { content: '>'; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
-
         .empty-compare { text-align: center; color: var(--text-secondary); padding: 50px; grid-column: 1 / -1; font-family: 'JetBrains Mono', monospace; border: 1px dashed var(--border-color); border-radius: 6px; }
     </style>
 </head>
@@ -194,7 +155,7 @@
         <header>
             <div class="header-title">
                 <h1>Ultimate Build</h1>
-                <p>Config.v4 // AI Assistant // PtP Analytics</p>
+                <p>Config.v5 // Compatibility Engine // PtP Analytics</p>
             </div>
             <div class="status-indicator">
                 <div class="status-dot"></div>
@@ -216,7 +177,9 @@
                         <button class="btn-small" onclick="saveCustomPreset()">SAVE</button>
                     </div>
                 </div>
-                <div id="builder-container"></div>
+                <div id="builder-container">
+                    <!-- Javascript will inject dropdowns here -->
+                </div>
             </div>
 
             <!-- Telemetry Panel -->
@@ -294,67 +257,99 @@
     </div>
 
     <script>
-        // --- 1. Database (Blank Slate Architecture) ---
+        // --- 1. Massive Database Expansion & Compatibility Tags ---
         const dummyItem = { id: 'none', name: '-- Choose a Component --', price: 0, score: 0 };
         const db = {
             cpu: [
                 dummyItem,
-                { id: 'c_9800x3d', name: 'AMD Ryzen 7 9800X3D', price: 440, score: 17000 },
-                { id: 'c_9950x', name: 'AMD Ryzen 9 9950X', price: 650, score: 24000 },
-                { id: 'c_7950x3d', name: 'AMD Ryzen 9 7950X3D', price: 600, score: 23500 },
-                { id: 'c_7800x3d', name: 'AMD Ryzen 7 7800X3D', price: 350, score: 13500 },
-                { id: 'c_7600x', name: 'AMD Ryzen 5 7600X', price: 200, score: 10500 },
-                { id: 'c_14900k', name: 'Intel Core i9-14900K', price: 550, score: 21000 }
+                // AM5
+                { id: 'c_9950x', name: 'AMD Ryzen 9 9950X', price: 650, score: 24000, socket: 'AM5' },
+                { id: 'c_9800x3d', name: 'AMD Ryzen 7 9800X3D', price: 440, score: 17000, socket: 'AM5' },
+                { id: 'c_7950x3d', name: 'AMD Ryzen 9 7950X3D', price: 600, score: 23500, socket: 'AM5' },
+                { id: 'c_7800x3d', name: 'AMD Ryzen 7 7800X3D', price: 350, score: 13500, socket: 'AM5' },
+                { id: 'c_7600x', name: 'AMD Ryzen 5 7600X', price: 200, score: 10500, socket: 'AM5' },
+                // AM4
+                { id: 'c_5800x3d', name: 'AMD Ryzen 7 5800X3D', price: 300, score: 11000, socket: 'AM4' },
+                { id: 'c_5600x', name: 'AMD Ryzen 5 5600X', price: 130, score: 8500, socket: 'AM4' },
+                { id: 'c_3600', name: 'AMD Ryzen 5 3600', price: 80, score: 6500, socket: 'AM4' },
+                // LGA1700 (Intel 12th/13th/14th Gen)
+                { id: 'c_14900k', name: 'Intel Core i9-14900K', price: 550, score: 21000, socket: 'LGA1700' },
+                { id: 'c_13700k', name: 'Intel Core i7-13700K', price: 360, score: 18500, socket: 'LGA1700' },
+                { id: 'c_13600k', name: 'Intel Core i5-13600K', price: 280, score: 14000, socket: 'LGA1700' },
+                { id: 'c_12400f', name: 'Intel Core i5-12400F', price: 140, score: 9500, socket: 'LGA1700' }
             ],
             gpu: [
                 dummyItem,
+                // RTX 50/40
                 { id: 'g_5090', name: 'NVIDIA RTX 5090 32GB', price: 1999, score: 41000 },
                 { id: 'g_5080', name: 'NVIDIA RTX 5080 16GB', price: 1199, score: 29500 },
                 { id: 'g_4090', name: 'NVIDIA RTX 4090 24GB', price: 1799, score: 36000 },
                 { id: 'g_4080s', name: 'NVIDIA RTX 4080 Super', price: 999, score: 28000 },
                 { id: 'g_4070s', name: 'NVIDIA RTX 4070 Super', price: 599, score: 21000 },
-                { id: 'g_7900xtx', name: 'AMD Radeon RX 7900 XTX', price: 899, score: 29000 }
+                { id: 'g_4060', name: 'NVIDIA RTX 4060 8GB', price: 299, score: 10500 },
+                // RTX 30
+                { id: 'g_3080', name: 'NVIDIA RTX 3080 10GB', price: 450, score: 18000 },
+                { id: 'g_3060', name: 'NVIDIA RTX 3060 12GB', price: 250, score: 8700 },
+                // Radeon 7000/6000
+                { id: 'g_7900xtx', name: 'AMD Radeon RX 7900 XTX', price: 899, score: 29000 },
+                { id: 'g_7800xt', name: 'AMD Radeon RX 7800 XT', price: 499, score: 19000 },
+                { id: 'g_6700xt', name: 'AMD Radeon RX 6700 XT', price: 320, score: 12500 }
             ],
             mobo: [
                 dummyItem,
-                { id: 'm_tomax870', name: 'MSI X870 MAG TOMAHAWK WIFI', price: 230 },
-                { id: 'm_godlike', name: 'MSI MEG X870E GODLIKE', price: 1200 },
-                { id: 'm_hero', name: 'ASUS ROG CROSSHAIR X870E HERO', price: 700 },
-                { id: 'm_aorusb650', name: 'Gigabyte B650 AORUS ELITE AX', price: 180 }
+                // AM5 (DDR5)
+                { id: 'm_godlike', name: 'MSI MEG X870E GODLIKE', price: 1200, socket: 'AM5', ramType: 'DDR5' },
+                { id: 'm_tomax870', name: 'MSI X870 MAG TOMAHAWK WIFI', price: 230, socket: 'AM5', ramType: 'DDR5' },
+                { id: 'm_aorusb650', name: 'Gigabyte B650 AORUS ELITE AX', price: 180, socket: 'AM5', ramType: 'DDR5' },
+                // AM4 (DDR4)
+                { id: 'm_tomab550', name: 'MSI MAG B550 TOMAHAWK MAX WIFI', price: 150, socket: 'AM4', ramType: 'DDR4' },
+                { id: 'm_aorusb450', name: 'Gigabyte B450 AORUS M', price: 90, socket: 'AM4', ramType: 'DDR4' },
+                // LGA1700 (DDR5 & DDR4)
+                { id: 'm_hero', name: 'ASUS ROG MAXIMUS Z790 HERO', price: 600, socket: 'LGA1700', ramType: 'DDR5' },
+                { id: 'm_tomaz790', name: 'MSI MAG Z790 TOMAHAWK WIFI', price: 240, socket: 'LGA1700', ramType: 'DDR5' },
+                { id: 'm_z690d4', name: 'ASUS Prime Z690-P D4', price: 160, socket: 'LGA1700', ramType: 'DDR4' }
             ],
             ram: [
                 dummyItem,
-                { id: 'r_32_6000', name: '32GB (2x16GB) DDR5-6000 CL30', price: 115 },
-                { id: 'r_64_6000', name: '64GB (2x32GB) DDR5-6000 CL30', price: 210 },
-                { id: 'r_96_6400', name: '96GB (2x48GB) DDR5-6400 CL32', price: 350 }
+                // DDR5
+                { id: 'r_96_6400', name: '96GB (2x48GB) DDR5-6400 CL32', price: 350, type: 'DDR5' },
+                { id: 'r_64_6000', name: '64GB (2x32GB) DDR5-6000 CL30', price: 210, type: 'DDR5' },
+                { id: 'r_32_6000', name: '32GB (2x16GB) DDR5-6000 CL30', price: 115, type: 'DDR5' },
+                { id: 'r_16_5200', name: '16GB (2x8GB) DDR5-5200 CL40', price: 65, type: 'DDR5' },
+                // DDR4
+                { id: 'r_32_3600_d4', name: '32GB (2x16GB) DDR4-3600 CL18', price: 75, type: 'DDR4' },
+                { id: 'r_16_3200_d4', name: '16GB (2x8GB) DDR4-3200 CL16', price: 40, type: 'DDR4' }
             ],
             storage: [
                 dummyItem,
-                { id: 's_990_2tb', name: 'Samsung 990 Pro 2TB NVMe', price: 170 },
-                { id: 's_990_1tb', name: 'Samsung 990 Pro 1TB NVMe', price: 110 },
                 { id: 's_990_4tb', name: 'Samsung 990 Pro 4TB NVMe', price: 320 },
-                { id: 's_p3_2tb', name: 'Crucial P3 Plus 2TB NVMe', price: 110 }
+                { id: 's_990_2tb', name: 'Samsung 990 Pro 2TB NVMe', price: 170 },
+                { id: 's_p3_2tb', name: 'Crucial P3 Plus 2TB NVMe', price: 110 },
+                { id: 's_p3_1tb', name: 'Crucial P3 Plus 1TB NVMe', price: 65 }
             ],
             cooling: [
                 dummyItem,
-                { id: 'cool_tryx', name: 'TRYX PANORAMA SE 360mm', price: 250 },
                 { id: 'cool_kraken', name: 'NZXT Kraken Elite 360', price: 280 },
+                { id: 'cool_tryx', name: 'TRYX PANORAMA SE 360mm', price: 250 },
                 { id: 'cool_arctic', name: 'Arctic Liquid Freezer III 360', price: 120 },
-                { id: 'cool_peerless', name: 'Thermalright Peerless Assassin 120', price: 35 }
+                { id: 'cool_peerless', name: 'Thermalright Peerless Assassin 120', price: 35 },
+                { id: 'cool_stock', name: 'AMD Wraith Stealth (Stock)', price: 0 }
             ],
             psu: [
                 dummyItem,
-                { id: 'p_1000e', name: 'Corsair RM1000e (2025)', price: 145 },
                 { id: 'p_1600i', name: 'Corsair AX1600i', price: 600 },
-                { id: 'p_850e', name: 'Corsair RM850e', price: 120 }
+                { id: 'p_1000e', name: 'Corsair RM1000e', price: 145 },
+                { id: 'p_850e', name: 'Corsair RM850e', price: 120 },
+                { id: 'p_750e', name: 'Corsair RM750e', price: 100 },
+                { id: 'p_650b', name: 'EVGA 650 B5 650W', price: 75 }
             ],
             case: [
                 dummyItem,
+                { id: 'case_nv7', name: 'Phanteks NV7', price: 200 },
                 { id: 'case_evo', name: 'Lian Li O11 Dynamic EVO RGB', price: 160 },
-                { id: 'case_vision', name: 'Lian Li O11 Vision', price: 140 },
                 { id: 'case_north', name: 'Fractal Design North', price: 140 },
                 { id: 'case_4000d', name: 'Corsair 4000D Airflow', price: 90 },
-                { id: 'case_nv7', name: 'Phanteks NV7', price: 200 }
+                { id: 'case_h510', name: 'NZXT H510', price: 70 }
             ]
         };
 
@@ -368,11 +363,10 @@
         // --- 2. State & Preset Management ---
         let state = {};
         categories.forEach(cat => state[cat.key] = 'none');
+        let aiInterventionMessage = ""; // Holds dynamic compatibility warnings
 
         let savedCustomPresets = [];
-        try { 
-            savedCustomPresets = JSON.parse(localStorage.getItem('savedCustomPresets')) || []; 
-        } catch (e) {}
+        try { savedCustomPresets = JSON.parse(localStorage.getItem('savedCustomPresets')) || []; } catch (e) {}
 
         function updatePresetDropdown() {
             const select = document.getElementById('pc-preset-selector');
@@ -385,8 +379,6 @@
         function saveCustomPreset() {
             const nameInput = document.getElementById('preset-name');
             const name = nameInput.value.trim() || 'Untitled Build';
-            
-            // Calculate current price and score to save with preset
             let price = 0; let gpuS = 0; let cpuS = 0;
             categories.forEach(cat => {
                 const item = db[cat.key].find(i => i.id === state[cat.key]) || dummyItem;
@@ -396,27 +388,23 @@
             });
             const score = (gpuS > 0 && cpuS > 0) ? Math.floor(1 / ((0.85 / gpuS) + (0.15 / cpuS))) : 0;
             
-            const newPreset = { name, state: { ...state }, price, score, timestamp: Date.now() };
-            savedCustomPresets.push(newPreset);
+            savedCustomPresets.push({ name, state: { ...state }, price, score, timestamp: Date.now() });
             localStorage.setItem('savedCustomPresets', JSON.stringify(savedCustomPresets));
             
-            nameInput.value = '';
-            updatePresetDropdown();
+            nameInput.value = ''; updatePresetDropdown();
             document.getElementById('pc-preset-selector').value = savedCustomPresets.length - 1;
-            renderCompareGrid(); // Update compare view dynamically
+            renderCompareGrid();
             alert(`Preset "${name}" saved! Check the Compare Presets tab to see its Price-to-Performance ratio.`);
         }
 
         function loadPreset() {
             const val = document.getElementById('pc-preset-selector').value;
             if (val === 'custom') return;
-            
             const preset = savedCustomPresets[parseInt(val)];
             if (preset) {
-                categories.forEach(cat => {
-                    state[cat.key] = preset.state[cat.key];
-                    document.getElementById(`select-${cat.key}`).value = preset.state[cat.key];
-                });
+                categories.forEach(cat => state[cat.key] = preset.state[cat.key]);
+                aiInterventionMessage = "";
+                refreshDropdowns();
                 updateTelemetry();
             }
         }
@@ -427,30 +415,95 @@
             toggleView('builder');
         }
 
-        // --- 3. Render Builder UI ---
-        const container = document.getElementById('builder-container');
-        categories.forEach(cat => {
-            let optionsHTML = '';
-            db[cat.key].forEach(item => {
-                optionsHTML += `<option value="${item.id}">${item.name}</option>`;
+        // --- 3. Reactive UI & Compatibility Engine ---
+        function initUI() {
+            const container = document.getElementById('builder-container');
+            container.innerHTML = '';
+            categories.forEach(cat => {
+                const html = `
+                    <div class="part-item">
+                        <div class="part-header">
+                            <div class="part-category">${cat.label}</div>
+                            <div class="part-price" id="price-${cat.key}">$0</div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <select id="select-${cat.key}" onchange="handleSelect('${cat.key}')" style="flex: 1;"></select>
+                            <button id="buy-${cat.key}" class="buy-btn" onclick="buyItem('${cat.key}')" disabled>BUY</button>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
             });
+            refreshDropdowns();
+        }
 
-            const html = `
-                <div class="part-item">
-                    <div class="part-header">
-                        <div class="part-category">${cat.label}</div>
-                        <div class="part-price" id="price-${cat.key}">$0</div>
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <select id="select-${cat.key}" onchange="handleSelect('${cat.key}')" style="flex: 1;">
-                            ${optionsHTML}
-                        </select>
-                        <button id="buy-${cat.key}" class="buy-btn" onclick="buyItem('${cat.key}')" disabled>BUY</button>
-                    </div>
-                </div>
-            `;
-            container.insertAdjacentHTML('beforeend', html);
-        });
+        function resolveConflicts() {
+            const cpu = db.cpu.find(c => c.id === state.cpu);
+            const mobo = db.mobo.find(m => m.id === state.mobo);
+            
+            // 1. Motherboard vs CPU Socket
+            if (cpu && cpu.id !== 'none' && mobo && mobo.id !== 'none') {
+                if (cpu.socket !== mobo.socket) {
+                    state.mobo = 'none';
+                    aiInterventionMessage = `AI AUTO-FIX: Your selected motherboard was incompatible with the new CPU socket (${cpu.socket}). The motherboard was reset.`;
+                }
+            }
+            
+            // 2. RAM vs Motherboard RAM Type
+            const updatedMobo = db.mobo.find(m => m.id === state.mobo);
+            const ram = db.ram.find(r => r.id === state.ram);
+            if (updatedMobo && updatedMobo.id !== 'none' && ram && ram.id !== 'none') {
+                if (updatedMobo.ramType !== ram.type) {
+                    state.ram = 'none';
+                    aiInterventionMessage = `AI AUTO-FIX: Your selected RAM was incompatible with the motherboard's memory standard (${updatedMobo.ramType}). The memory was reset.`;
+                }
+            }
+        }
+
+        function refreshDropdowns() {
+            const cpu = db.cpu.find(c => c.id === state.cpu);
+            const mobo = db.mobo.find(m => m.id === state.mobo);
+
+            categories.forEach(cat => {
+                const selectEl = document.getElementById(`select-${cat.key}`);
+                let optionsHTML = '';
+                
+                db[cat.key].forEach(item => {
+                    let isCompatible = true;
+                    
+                    // Filter Logic
+                    if (cat.key === 'mobo' && cpu && cpu.id !== 'none' && item.id !== 'none') {
+                        if (item.socket !== cpu.socket) isCompatible = false;
+                    }
+                    if (cat.key === 'ram' && mobo && mobo.id !== 'none' && item.id !== 'none') {
+                        if (item.type !== mobo.ramType) isCompatible = false;
+                    }
+
+                    if (isCompatible || item.id === 'none') {
+                        const isSelected = state[cat.key] === item.id ? 'selected' : '';
+                        optionsHTML += `<option value="${item.id}" ${isSelected}>${item.name}</option>`;
+                    }
+                });
+                
+                selectEl.innerHTML = optionsHTML;
+            });
+        }
+
+        function handleSelect(categoryKey) {
+            document.getElementById('pc-preset-selector').value = 'custom';
+            const selectEl = document.getElementById(`select-${categoryKey}`);
+            state[categoryKey] = selectEl.value;
+            
+            aiInterventionMessage = ""; // Clear old interventions
+            resolveConflicts(); // Check for bad interactions (e.g. changing CPU when a Mobo is picked)
+            refreshDropdowns(); // Rebuild menus to hide incompatible parts
+            updateTelemetry();  // Update math and AI panel
+        }
+
+        function buyItem(categoryKey) {
+            const item = db[categoryKey].find(i => i.id === state[categoryKey]);
+            if (item && item.id !== 'none') window.open(`https://www.amazon.com/s?k=${encodeURIComponent(item.name)}`, '_blank');
+        }
 
         // --- 4. Game Profiles & Math ---
         const gameProfiles = {
@@ -469,11 +522,8 @@
 
         function calculateFPS(gameKey, preset, gpuScore, cpuScore, isAMD) {
             if(gpuScore === 0 || cpuScore === 0) return { fps1080: 0, fps1440: 0, fps4k: 0, fps4kRT: 0 };
-
             const game = gameProfiles[gameKey];
-            const gpuRatio = gpuScore / 36000; 
-            const cpuRatio = cpuScore / 13500; 
-            
+            const gpuRatio = gpuScore / 36000; const cpuRatio = cpuScore / 13500; 
             const adjustedCpuRatio = (state.cpu.includes('x3d') || state.cpu.includes('X3D')) ? cpuRatio * 1.3 : cpuRatio;
             const mult = preset === 'low' ? game.lowMult : 1.0;
             const cpuLimitCurrent = game.cpuLimit * adjustedCpuRatio * (preset === 'low' ? 1.2 : 1.0);
@@ -482,10 +532,8 @@
             let fps1440 = Math.floor(Math.min(game.base1440 * gpuRatio * mult, cpuLimitCurrent * 1.1));
             let fps4k = Math.floor(game.base4k * gpuRatio * mult);
             let fps4kRT = game.base4kRT > 0 ? Math.floor(game.base4kRT * gpuRatio) : 0;
-
             if (preset === 'low') fps4kRT = 0;
             if (isAMD && fps4kRT > 0) fps4kRT = Math.floor(fps4kRT * 0.4); 
-
             return { fps1080, fps1440, fps4k, fps4kRT };
         }
 
@@ -493,73 +541,48 @@
         function toggleView(view) {
             document.getElementById('view-builder').style.display = view === 'builder' ? 'grid' : 'none';
             document.getElementById('view-compare').style.display = view === 'compare' ? 'block' : 'none';
-            
             document.getElementById('btn-builder').className = view === 'builder' ? 'nav-btn active' : 'nav-btn';
             document.getElementById('btn-compare').className = view === 'compare' ? 'nav-btn active' : 'nav-btn';
             if (view === 'compare') renderCompareGrid();
         }
 
-        function buyItem(categoryKey) {
-            const selectedId = state[categoryKey];
-            const item = db[categoryKey].find(i => i.id === selectedId);
-            if (item && item.id !== 'none') {
-                window.open(`https://www.amazon.com/s?k=${encodeURIComponent(item.name)}`, '_blank');
-            }
-        }
-
-        function handleSelect(categoryKey) {
-            document.getElementById('pc-preset-selector').value = 'custom';
-            const selectEl = document.getElementById(`select-${categoryKey}`);
-            state[categoryKey] = selectEl.value;
-            updateTelemetry();
-        }
-
-        // --- 6. The AI Assistant Engine ---
         function runAIAssistant(missingCount, gpuScore, cpuScore, totalPrice, psuPrice) {
             const panel = document.getElementById('ai-panel');
             const text = document.getElementById('ai-text');
-            
             panel.className = 'ai-panel'; // reset
 
-            if (missingCount > 0) {
-                text.innerText = `Please select all components. Missing: ${missingCount} parts.`;
+            // Highest priority: Active intervetions by the compatibility engine
+            if (aiInterventionMessage !== "") {
+                panel.className = 'ai-panel intervention';
+                text.innerText = aiInterventionMessage;
                 return;
             }
 
+            if (missingCount > 0) { text.innerText = `Please select all components. Missing: ${missingCount} parts.`; return; }
             if (gpuScore > 30000 && cpuScore < 15000) {
                 panel.className = 'ai-panel danger';
                 text.innerText = "CRITICAL WARNING: Your high-end graphics card is severely bottlenecked by your weak CPU. You will lose massive frames at 1080p and 1440p. Upgrade your CPU!";
                 return;
             }
-
             if (cpuScore > 20000 && gpuScore < 25000) {
                 panel.className = 'ai-panel warning';
                 text.innerText = "ADVICE: Your CPU is completely overkill for this graphics card. If your goal is gaming, save money on the CPU and buy a faster GPU instead.";
                 return;
             }
-
             if (totalPrice > 2500 && psuPrice < 130) {
                 panel.className = 'ai-panel warning';
                 text.innerText = "WARNING: You are building a very expensive, high-power system but cheaping out on the Power Supply. Consider upgrading to a 1000W+ unit.";
                 return;
             }
-
-            // If no bottlenecks
             text.innerText = "ANALYSIS COMPLETE: This build is beautifully balanced with no obvious bottlenecks. Ready for deployment.";
         }
 
         function updateTelemetry() {
-            let totalPrice = 0;
-            let gpuScore = 0;
-            let cpuScore = 0;
-            let isAMD = false;
-            let missingCount = 0;
-            let psuPrice = 0;
+            let totalPrice = 0; let gpuScore = 0; let cpuScore = 0; let psuPrice = 0;
+            let isAMD = false; let missingCount = 0;
 
             categories.forEach(cat => {
-                const selectedId = state[cat.key];
-                const item = db[cat.key].find(i => i.id === selectedId) || dummyItem;
-                
+                const item = db[cat.key].find(i => i.id === state[cat.key]) || dummyItem;
                 if (item.id === 'none') {
                     missingCount++;
                     document.getElementById(`price-${cat.key}`).innerText = '-';
@@ -569,11 +592,7 @@
                     document.getElementById(`price-${cat.key}`).innerText = '$' + item.price;
                     document.getElementById(`buy-${cat.key}`).disabled = false;
                 }
-
-                if (cat.key === 'gpu') {
-                    gpuScore = item.score;
-                    if (item.name.includes('Radeon')) isAMD = true;
-                }
+                if (cat.key === 'gpu') { gpuScore = item.score; if (item.name.includes('Radeon')) isAMD = true; }
                 if (cat.key === 'cpu') cpuScore = item.score;
                 if (cat.key === 'psu') psuPrice = item.price;
             });
@@ -590,7 +609,6 @@
             document.getElementById('fps-1080').innerHTML = `${fps.fps1080} <span>FPS</span>`;
             document.getElementById('fps-1440').innerHTML = `${fps.fps1440} <span>FPS</span>`;
             document.getElementById('fps-4k').innerHTML = `${fps.fps4k} <span>FPS</span>`;
-            
             document.getElementById('label-1080').innerText = preset === 'low' ? '1080p Low' : '1080p High';
             document.getElementById('label-1440').innerText = preset === 'low' ? '1440p Low' : '1440p Ultra';
             document.getElementById('label-4k').innerText = preset === 'low' ? '4K Low' : '4K Ultra';
@@ -606,24 +624,19 @@
             runAIAssistant(missingCount, gpuScore, cpuScore, totalPrice, psuPrice);
         }
 
-        // --- 7. Compare View Rendering ---
+        // --- 6. Compare View Rendering ---
         function renderCompareGrid() {
             const container = document.getElementById('compare-grid-container');
             container.innerHTML = '';
-
             if (savedCustomPresets.length === 0) {
                 container.innerHTML = '<div class="empty-compare">You have not saved any custom presets yet!<br><br>Go back to the Builder, pick your parts, and click SAVE PRESET.</div>';
                 return;
             }
-
             savedCustomPresets.forEach((preset, index) => {
-                // Fetch display names for CPU and GPU
                 const cpuName = db['cpu'].find(i => i.id === preset.state.cpu)?.name || 'Unknown CPU';
                 const gpuName = db['gpu'].find(i => i.id === preset.state.gpu)?.name || 'Unknown GPU';
                 const moboName = db['mobo'].find(i => i.id === preset.state.mobo)?.name || 'Unknown Mobo';
                 const ramName = db['ram'].find(i => i.id === preset.state.ram)?.name || 'Unknown RAM';
-
-                // Price to Performance (PtP) Calculation = Score per Dollar
                 let ptpRatio = (preset.price > 0 && preset.score > 0) ? (preset.score / preset.price).toFixed(1) : 0;
                 
                 const cardHtml = `
@@ -645,11 +658,10 @@
         }
 
         // --- Init ---
+        initUI();
         updatePresetDropdown();
         updateTelemetry();
-        if (window.innerWidth <= 900) {
-           document.getElementById('view-builder').style.display = 'grid'; 
-        }
+        if (window.innerWidth <= 900) document.getElementById('view-builder').style.display = 'grid'; 
     </script>
 </body>
 </html>
