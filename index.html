@@ -232,11 +232,115 @@
         .compare-specs li { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
         .compare-specs li::before { content: '>'; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
         .empty-compare { text-align: center; color: var(--text-secondary); padding: 50px; grid-column: 1 / -1; font-family: 'JetBrains Mono', monospace; border: 1px dashed var(--border-color); border-radius: 6px; }
+        
+        /* Grid Selector Modal */
+        .selector-modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9); z-index: 200; display: none;
+            flex-direction: column; padding: 20px; box-sizing: border-box;
+            backdrop-filter: blur(10px);
+        }
+        .selector-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        }
+        .selector-header h2 { margin: 0; font-size: 1.5rem; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .close-selector {
+            background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; transition: color 0.2s;
+        }
+        .close-selector:hover { color: var(--danger); }
+
+        .selector-layout {
+            display: grid; grid-template-columns: 250px 1fr; gap: 20px; flex: 1; min-height: 0;
+        }
+        @media (max-width: 900px) { .selector-layout { grid-template-columns: 1fr; } .selector-sidebar { display: none; } }
+
+        .selector-sidebar {
+            background: #111; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px;
+            display: flex; flex-direction: column; gap: 20px; overflow-y: auto;
+        }
+        .filter-group-title { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; }
+        .filter-checkbox { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.9rem; cursor: pointer; }
+        
+        .selector-main { display: flex; flex-direction: column; gap: 20px; min-height: 0; }
+        .selector-topbar { display: flex; justify-content: space-between; align-items: center; }
+        .search-box {
+            background: #000; border: 1px solid var(--border-color); color: #fff;
+            padding: 10px 15px; border-radius: 4px; width: 300px; font-family: 'Inter', sans-serif;
+        }
+        .search-box:focus { border-color: var(--accent); outline: none; }
+
+        .part-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;
+            overflow-y: auto; flex: 1; padding-right: 10px;
+        }
+        .part-grid::-webkit-scrollbar { width: 8px; }
+        .part-grid::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        
+        .grid-card {
+            background: #111; border: 1px solid var(--border-color); border-radius: 8px;
+            display: flex; flex-direction: column; overflow: hidden; transition: transform 0.2s, border-color 0.2s;
+        }
+        .grid-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .grid-image {
+            height: 140px; background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+            display: flex; justify-content: center; align-items: center; font-size: 3rem;
+            border-bottom: 1px solid var(--border-color); position: relative;
+        }
+        .grid-badge {
+            position: absolute; top: 10px; left: 10px; background: #e91e63; color: #fff;
+            font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: bold;
+        }
+        .grid-info { padding: 15px; display: flex; flex-direction: column; flex: 1; }
+        .grid-name { font-size: 0.9rem; font-weight: 600; margin-bottom: 10px; color: #fff; }
+        .grid-price { font-family: 'JetBrains Mono', monospace; color: #10b981; font-weight: 700; font-size: 1.1rem; margin-bottom: 15px; }
+        .grid-specs { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 15px; flex: 1; }
+        .grid-add-btn {
+            background: #222; color: #fff; border: 1px solid var(--border-color);
+            padding: 8px; border-radius: 4px; cursor: pointer; font-family: 'JetBrains Mono', monospace;
+            font-weight: bold; font-size: 0.8rem; transition: background 0.2s; text-align: center;
+        }
+        .grid-add-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
     </style>
 </head>
 <body>
     <!-- Snow Canvas Background -->
     <canvas id="snowCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.7;"></canvas>
+
+    <!-- Selection Modal -->
+    <div class="selector-modal" id="selector-modal">
+        <div class="selector-header">
+            <h2 id="selector-title">Select Component</h2>
+            <button class="close-selector" onclick="closePartSelector()">×</button>
+        </div>
+        <div class="selector-layout">
+            <div class="selector-sidebar">
+                <div>
+                    <div class="filter-group-title">Price Range</div>
+                    <input type="range" id="price-slider" min="0" max="2000" value="2000" style="width: 100%; margin-bottom: 5px;" oninput="updateSelectorGrid()">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary);">
+                        <span>$0</span><span id="price-val">$2000</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="filter-group-title">Brand</div>
+                    <div id="brand-filters">
+                        <!-- Checkboxes populated via JS -->
+                    </div>
+                </div>
+            </div>
+            <div class="selector-main">
+                <div class="selector-topbar">
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--text-secondary);">
+                        Showing <span id="result-count">0</span> compatible products
+                    </div>
+                    <input type="text" class="search-box" id="selector-search" placeholder="Search..." oninput="updateSelectorGrid()">
+                </div>
+                <div class="part-grid" id="part-grid-container">
+                    <!-- Cards injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Custom Part Injector Modal -->
     <div class="modal-overlay" id="custom-modal">
@@ -542,10 +646,7 @@
                         </div>
                         ${filterHTML}
                         <div style="display: flex; gap: 8px; align-items: center;">
-                            <div class="custom-select-wrapper" id="custom-wrapper-${cat.key}">
-                                <div class="custom-select" id="custom-display-${cat.key}" onclick="toggleDropdown('${cat.key}')">-- Choose a Component --</div>
-                                <div class="custom-options" id="custom-options-${cat.key}"></div>
-                            </div>
+                            <button id="choose-btn-${cat.key}" class="custom-select" style="flex: 1;" onclick="openPartSelector('${cat.key}')">-- Choose a Component --</button>
                             <input type="number" id="qty-${cat.key}" min="1" max="10" value="${qtyState[cat.key] || 1}" style="width: 45px; height: 38px; text-align: center; background: #000; color: #fff; border: 1px solid var(--border-color); border-radius: 4px; outline: none;" onchange="handleQtyChange('${cat.key}')" title="Quantity">
                             <button id="buy-${cat.key}" class="buy-btn" onclick="buyItem('${cat.key}')" disabled style="height: 38px;">BUY</button>
                         </div>
@@ -553,7 +654,7 @@
                 `;
                 container.insertAdjacentHTML('beforeend', html);
             });
-            refreshDropdowns();
+            refreshBuilderDisplay();
         }
 
         function openCustomModal(catKey) {
@@ -628,85 +729,134 @@
             }
         }
 
-        function refreshDropdowns() {
+        function refreshBuilderDisplay() {
+            categories.forEach(cat => {
+                const btn = document.getElementById(`choose-btn-${cat.key}`);
+                const buyBtn = document.getElementById(`buy-${cat.key}`);
+                if (!btn) return;
+                
+                const selectedItem = db[cat.key].find(i => i.id === state[cat.key]);
+                if (selectedItem && selectedItem.id !== 'none') {
+                    btn.innerText = selectedItem.name;
+                    if (buyBtn) buyBtn.disabled = false;
+                } else {
+                    btn.innerText = '-- Choose a Component --';
+                    if (buyBtn) buyBtn.disabled = true;
+                }
+            });
+        }
+
+        let currentSelectorCat = null;
+        let selectorBrands = [];
+
+        function getCategoryIcon(catKey) {
+            const icons = {
+                cpu: '⚙️', gpu: '🎮', mobo: '🖥️', ram: '🎫', storage: '💾', cooling: '❄️', psu: '⚡', case: '📦', fans: '🌀', accessories: '🛠️', monitor: '📺'
+            };
+            return icons[catKey] || '📦';
+        }
+
+        function extractBrand(name) {
+            const brands = ['AMD', 'Intel', 'NVIDIA', 'ASUS', 'MSI', 'Gigabyte', 'ASRock', 'Corsair', 'G.Skill', 'TeamGroup', 'Crucial', 'Kingston', 'Patriot', 'WD', 'Samsung', 'Seagate', 'NZXT', 'Deepcool', 'Arctic', 'Noctua', 'Thermalright', 'Cooler Master', 'be quiet!', 'Seasonic', 'EVGA', 'Thermaltake', 'Phanteks', 'HYTE', 'Lian Li', 'Fractal Design', 'Alienware', 'LG', 'BenQ', 'AOC', 'TRYX'];
+            for (let b of brands) {
+                if (name.toLowerCase().includes(b.toLowerCase())) return b;
+            }
+            return 'Other';
+        }
+
+        function openPartSelector(catKey) {
+            currentSelectorCat = catKey;
+            const cat = categories.find(c => c.key === catKey);
+            document.getElementById('selector-title').innerText = `Select ${cat.label}`;
+            
+            const brands = new Set();
+            db[catKey].forEach(item => {
+                if (item.id !== 'none') brands.add(extractBrand(item.name));
+            });
+            selectorBrands = Array.from(brands).sort();
+            
+            let brandHTML = '';
+            selectorBrands.forEach(b => {
+                brandHTML += `<label class="filter-checkbox"><input type="checkbox" value="${b}" class="brand-check" onchange="updateSelectorGrid()" checked> ${b}</label>`;
+            });
+            document.getElementById('brand-filters').innerHTML = brandHTML;
+            
+            document.getElementById('selector-search').value = '';
+            document.getElementById('price-slider').value = 3000;
+            document.getElementById('price-val').innerText = '$3000+';
+
+            document.getElementById('selector-modal').style.display = 'flex';
+            updateSelectorGrid();
+        }
+
+        function closePartSelector() {
+            document.getElementById('selector-modal').style.display = 'none';
+        }
+
+        function updateSelectorGrid() {
+            if (!currentSelectorCat) return;
+            const container = document.getElementById('part-grid-container');
+            const search = document.getElementById('selector-search').value.toLowerCase();
+            const maxPrice = parseInt(document.getElementById('price-slider').value);
+            document.getElementById('price-val').innerText = maxPrice >= 3000 ? '$3000+' : `$${maxPrice}`;
+            
+            const activeBrands = Array.from(document.querySelectorAll('.brand-check:checked')).map(cb => cb.value);
+
             const cpu = db.cpu.find(c => c.id === state.cpu);
             const mobo = db.mobo.find(m => m.id === state.mobo);
 
-            categories.forEach(cat => {
-                const optionsContainer = document.getElementById(`custom-options-${cat.key}`);
-                const displayEl = document.getElementById(`custom-display-${cat.key}`);
-                if (!optionsContainer || !displayEl) return;
+            let html = '';
+            let count = 0;
+
+            db[currentSelectorCat].forEach(item => {
+                if (item.id === 'none') return;
                 
-                let optionsHTML = '';
+                let isCompatible = true;
+                if (currentSelectorCat === 'mobo' && cpu && cpu.id !== 'none') {
+                    if (item.socket !== cpu.socket) isCompatible = false;
+                }
+                if (currentSelectorCat === 'ram' && mobo && mobo.id !== 'none') {
+                    if (item.type !== mobo.ramType) isCompatible = false;
+                }
                 
-                db[cat.key].forEach(item => {
-                    let isCompatible = true;
+                if (!item.name.toLowerCase().includes(search)) isCompatible = false;
+                if (item.price > maxPrice && maxPrice < 3000) isCompatible = false;
+                
+                const itemBrand = extractBrand(item.name);
+                if (!activeBrands.includes(itemBrand)) isCompatible = false;
+
+                if (isCompatible) {
+                    count++;
+                    const specs = item.socket ? `Socket: ${item.socket}` : (item.type ? `Type: ${item.type}` : '');
                     
-                    // Filter Logic
-                    if (cat.key === 'mobo' && cpu && cpu.id !== 'none' && item.id !== 'none') {
-                        if (item.socket !== cpu.socket) isCompatible = false;
-                    }
-                    if (cat.key === 'ram' && mobo && mobo.id !== 'none' && item.id !== 'none') {
-                        if (item.type !== mobo.ramType) isCompatible = false;
-                    }
-
-                    // Check manual filters
-                    const manualFilter = filterState[cat.key];
-                    if (manualFilter && manualFilter !== 'all') {
-                        if (cat.key === 'cpu' || cat.key === 'mobo') {
-                            if (item.socket && item.socket.toLowerCase() !== manualFilter) isCompatible = false;
-                        } else if (cat.key === 'ram') {
-                            if (item.type && item.type.toLowerCase() !== manualFilter) isCompatible = false;
-                        } else if (cat.key === 'storage' || cat.key === 'psu' || cat.key === 'cooling' || cat.key === 'gpu') {
-                            if (cat.key === 'cooling' && manualFilter === 'air') {
-                                if (item.name.toLowerCase().includes('mm')) isCompatible = false;
-                            } else {
-                                if (!item.name.toLowerCase().includes(manualFilter)) isCompatible = false;
-                            }
-                        }
-                    }
-
-                    if (isCompatible || item.id === 'none') {
-                        const isSelected = state[cat.key] === item.id;
-                        if (isSelected) {
-                            displayEl.innerText = item.name;
-                        }
-                        optionsHTML += `<div class="custom-option ${isSelected ? 'selected' : ''}" onclick="selectCustomOption('${cat.key}', '${item.id}')">${item.name}</div>`;
-                    }
-                });
-                
-                optionsContainer.innerHTML = optionsHTML;
+                    html += `
+                        <div class="grid-card">
+                            <div class="grid-image">
+                                ${getCategoryIcon(currentSelectorCat)}
+                                <div class="grid-badge">3D</div>
+                            </div>
+                            <div class="grid-info">
+                                <div class="grid-name">${item.name}</div>
+                                <div class="grid-specs">${specs}</div>
+                                <div class="grid-price">$${item.price.toFixed(2)}</div>
+                                <button class="grid-add-btn" onclick="selectPartFromGrid('${currentSelectorCat}', '${item.id}')">+ Add to build</button>
+                            </div>
+                        </div>
+                    `;
+                }
             });
-        }
-
-        function handleSelect(categoryKey) {
-            document.getElementById('pc-preset-selector').value = 'custom';
-            const selectEl = document.getElementById(`select-${categoryKey}`);
-            if (selectEl) {
-                state[categoryKey] = selectEl.value;
-            }
             
-            aiInterventionMessage = ""; // Clear old interventions
-            resolveConflicts(); // Check for bad interactions (e.g. changing CPU when a Mobo is picked)
-            refreshDropdowns(); // Rebuild menus to hide incompatible parts
-            updateTelemetry();
+            container.innerHTML = html;
+            document.getElementById('result-count').innerText = count;
         }
 
-        function toggleDropdown(catKey) {
-            document.querySelectorAll('.custom-options').forEach(el => {
-                if (el.id !== `custom-options-${catKey}`) el.classList.remove('open');
-            });
-            document.getElementById(`custom-options-${catKey}`).classList.toggle('open');
-        }
-
-        function selectCustomOption(catKey, itemId) {
-            document.getElementById(`custom-options-${catKey}`).classList.remove('open');
-            document.getElementById('pc-preset-selector').value = 'custom';
+        function selectPartFromGrid(catKey, itemId) {
             state[catKey] = itemId;
-            
+            closePartSelector();
+            document.getElementById('pc-preset-selector').value = 'custom';
             aiInterventionMessage = "";
             resolveConflicts();
-            refreshDropdowns();
+            refreshBuilderDisplay();
             updateTelemetry();
         }
 
@@ -720,12 +870,6 @@
             }
             updateTelemetry();
         }
-
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.custom-select-wrapper')) {
-                document.querySelectorAll('.custom-options').forEach(el => el.classList.remove('open'));
-            }
-        });
 
         function buyItem(categoryKey) {
             const item = db[categoryKey].find(i => i.id === state[categoryKey]);
