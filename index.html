@@ -749,7 +749,34 @@
         let currentSelectorCat = null;
         let selectorBrands = [];
 
-        function getCategoryIcon(catKey) {
+        function getComponentImage(item, catKey) {
+            // First check if DB explicitly has an image
+            if (item.img) return item.img;
+            
+            const n = item.name.toLowerCase();
+            
+            // Map keywords to real Wikimedia Commons product images
+            if (n.includes('amd ryzen')) return 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/AMD_Ryzen_5_2600.jpg/800px-AMD_Ryzen_5_2600.jpg';
+            if (n.includes('intel core')) return 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Intel_Core_i9-10900K.jpg/800px-Intel_Core_i9-10900K.jpg';
+            if (n.includes('rtx')) return 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Nvidia_GeForce_RTX_3080_Founders_Edition.jpg/800px-Nvidia_GeForce_RTX_3080_Founders_Edition.jpg';
+            if (n.includes('radeon')) return 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/AMD_Radeon_RX_6800_XT.jpg/800px-AMD_Radeon_RX_6800_XT.jpg';
+            
+            if (catKey === 'mobo') {
+                if (n.includes('asus')) return 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Asus_Prime_X299-A_motherboard.jpg/800px-Asus_Prime_X299-A_motherboard.jpg';
+                if (n.includes('msi') || n.includes('gigabyte')) return 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Gigabyte_GA-Z170X-Gaming_7.jpg/800px-Gigabyte_GA-Z170X-Gaming_7.jpg';
+                return 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Motherboard_Layout.svg/800px-Motherboard_Layout.svg.png';
+            }
+            
+            if (catKey === 'ram') return 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Corsair_Vengeance_LPX_DDR4_RAM.jpg/800px-Corsair_Vengeance_LPX_DDR4_RAM.jpg';
+            if (catKey === 'storage') return 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Samsung_970_EVO_Plus_NVMe_M.2_SSD.jpg/800px-Samsung_970_EVO_Plus_NVMe_M.2_SSD.jpg';
+            if (catKey === 'psu') return 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/ATX_Power_Supply.jpg/800px-ATX_Power_Supply.jpg';
+            if (catKey === 'case') return 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Computer_case_open.jpg/800px-Computer_case_open.jpg';
+            if (catKey === 'cooling') {
+                if (n.includes('noctua') || n.includes('thermalright') || n.includes('deepcool')) return 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Noctua_NH-D15.jpg/800px-Noctua_NH-D15.jpg';
+                return 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Corsair_H100i_v2.jpg/800px-Corsair_H100i_v2.jpg'; // Default to AIO
+            }
+            
+            // Fallback default icon behavior if no real image
             const icons = {
                 cpu: '⚙️', gpu: '🎮', mobo: '🖥️', ram: '🎫', storage: '💾', cooling: '❄️', psu: '⚡', case: '📦', fans: '🌀', accessories: '🛠️', monitor: '📺'
             };
@@ -829,10 +856,15 @@
                     count++;
                     const specs = item.socket ? `Socket: ${item.socket}` : (item.type ? `Type: ${item.type}` : '');
                     
+                    const imgSrc = getComponentImage(item, currentSelectorCat);
+                    const imageHTML = imgSrc.startsWith('http') 
+                        ? `<img src="${imgSrc}" style="width: 100%; height: 100%; object-fit: contain; padding: 15px; box-sizing: border-box; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));" alt="${item.name}">` 
+                        : imgSrc;
+                    
                     html += `
                         <div class="grid-card">
                             <div class="grid-image">
-                                ${getCategoryIcon(currentSelectorCat)}
+                                ${imageHTML}
                                 <div class="grid-badge">3D</div>
                             </div>
                             <div class="grid-info">
