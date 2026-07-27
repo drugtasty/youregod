@@ -631,7 +631,10 @@
 
         function buyItem(categoryKey) {
             const item = db[categoryKey].find(i => i.id === state[categoryKey]);
-            if (item && item.id !== 'none') window.open(`https://www.amazon.com/s?k=${encodeURIComponent(item.name)}`, '_blank');
+            if (item && item.id !== 'none') {
+                // Using DuckDuckGo's "I'm Feeling Lucky" (\) command to instantly redirect to the first Amazon product page result!
+                window.open(`https://duckduckgo.com/?q=\\+amazon+${encodeURIComponent(item.name)}`, '_blank');
+            }
         }
 
         // --- 4. Game Profiles & Math ---
