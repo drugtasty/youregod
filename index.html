@@ -25,15 +25,30 @@
             font-family: 'Inter', -apple-system, sans-serif;
             background-color: var(--bg-base); color: var(--text-primary);
             min-height: 100vh; display: flex; justify-content: center;
-            padding-top: 40px; padding-bottom: 40px;
+            padding-top: 20px; padding-bottom: 40px;
         }
 
         .app-container { width: 100%; max-width: 1100px; padding: 0 20px; }
 
+        /* Navigation Bar */
+        .top-nav {
+            display: flex; gap: 10px; margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color); padding-bottom: 20px;
+        }
+        
+        .nav-btn {
+            background: transparent; color: var(--text-secondary);
+            border: 1px solid var(--border-color); border-radius: 4px;
+            padding: 10px 20px; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem; font-weight: 700; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .nav-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
+        .nav-btn.active { background: var(--bg-panel); color: var(--text-primary); border-color: var(--accent); box-shadow: 0 0 10px rgba(16,185,129,0.1); }
+
         header {
             margin-bottom: 30px; display: flex; justify-content: space-between;
-            align-items: flex-end; border-bottom: 1px solid var(--border-color);
-            padding-bottom: 20px;
+            align-items: flex-end;
         }
 
         .header-title h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 5px 0; }
@@ -120,12 +135,48 @@
         .fps-val { font-size: 1.5rem; font-weight: 700; color: #fff; }
         .fps-val span { font-size: 0.8rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-weight: 400; }
 
-        .game-select-container { margin-bottom: 10px; }
+        /* Compare View */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        @media (max-width: 800px) { .compare-grid { grid-template-columns: 1fr; } }
+
+        .compare-card {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.2s;
+        }
+        .compare-card:hover { border-color: var(--text-secondary); }
+        .compare-card h3 { margin: 0 0 10px 0; font-size: 1.2rem; }
+        .compare-price { font-family: 'JetBrains Mono', monospace; font-size: 2rem; font-weight: 700; color: var(--accent); margin-bottom: 20px; }
+        
+        .compare-specs { list-style: none; padding: 0; margin: 0 0 20px 0; border-top: 1px solid var(--border-color); padding-top: 15px;}
+        .compare-specs li { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .compare-specs li::before { content: '>'; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+
+        .compare-fps {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+            background: #000; padding: 10px; border-radius: 4px;
+            border: 1px solid var(--border-color); margin-bottom: 10px;
+        }
+        .compare-fps span { color: #fff; font-weight: 700; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
+        <!-- Navigation -->
+        <nav class="top-nav">
+            <button class="nav-btn active" onclick="toggleView('builder')" id="btn-builder">🛠️ BUILDER</button>
+            <button class="nav-btn" onclick="toggleView('compare')" id="btn-compare">📊 COMPARE PRESETS</button>
+        </nav>
+
         <header>
             <div class="header-title">
                 <h1>Ultimate Build</h1>
@@ -137,7 +188,8 @@
             </div>
         </header>
 
-        <div class="grid-layout">
+        <!-- BUILDER VIEW -->
+        <div id="view-builder" class="grid-layout">
             <!-- Builder Panel -->
             <div class="panel">
                 <div class="panel-header" style="align-items: center;">
@@ -210,16 +262,72 @@
                 </div>
             </div>
         </div>
+
+        <!-- COMPARE VIEW -->
+        <div id="view-compare" style="display: none;">
+            <div class="compare-grid">
+                
+                <!-- Budget Build -->
+                <div class="compare-card">
+                    <h3>Esports Budget 1080p</h3>
+                    <div class="compare-price">$945</div>
+                    <ul class="compare-specs">
+                        <li>AMD Ryzen 5 7600X</li>
+                        <li>NVIDIA RTX 4070 Super</li>
+                        <li>Gigabyte B650 AORUS</li>
+                        <li>32GB DDR5-6000</li>
+                    </ul>
+                    <div class="compare-fps">Cyberpunk 1440p (High): <span>~93 FPS</span></div>
+                    <div class="compare-fps">Roblox Heavy (Low): <span>~180 FPS</span></div>
+                    <div class="compare-fps">Valorant 1080p (Comp): <span>~520 FPS</span></div>
+                    <button class="buy-btn" style="width: 100%; margin-top: auto; padding: 12px 0;" onclick="loadCompareBuild('budget_1080p')">LOAD THIS BUILD</button>
+                </div>
+
+                <!-- Ultimate Build -->
+                <div class="compare-card" style="border-color: var(--accent);">
+                    <h3>My $3,600 Ultimate Build</h3>
+                    <div class="compare-price">$3,509</div>
+                    <ul class="compare-specs">
+                        <li><strong style="color: #fff;">AMD Ryzen 7 9800X3D</strong></li>
+                        <li><strong style="color: #fff;">NVIDIA RTX 5090 32GB</strong></li>
+                        <li>MSI X870 Tomahawk</li>
+                        <li>32GB DDR5-6000</li>
+                    </ul>
+                    <div class="compare-fps">Cyberpunk 4K (Path Tracing): <span>~62 FPS</span></div>
+                    <div class="compare-fps">Roblox Heavy (Low): <span>~278 FPS</span></div>
+                    <div class="compare-fps">Valorant 1080p (Comp): <span>~1000+ FPS</span></div>
+                    <button class="buy-btn" style="width: 100%; margin-top: auto; padding: 12px 0;" onclick="loadCompareBuild('user_3600')">LOAD THIS BUILD</button>
+                </div>
+
+                <!-- God Tier -->
+                <div class="compare-card">
+                    <h3>The God Tier</h3>
+                    <div class="compare-price">$5,578</div>
+                    <ul class="compare-specs">
+                        <li>AMD Ryzen 9 9950X</li>
+                        <li>NVIDIA RTX 5090 32GB</li>
+                        <li>MSI MEG GODLIKE ($1200)</li>
+                        <li>96GB DDR5-6400</li>
+                    </ul>
+                    <div class="compare-fps">Cyberpunk 4K (Path Tracing): <span>~62 FPS</span></div>
+                    <div class="compare-fps">Roblox Heavy (Low): <span>~251 FPS</span></div>
+                    <div class="compare-fps">Valorant 1080p (Comp): <span>~976 FPS</span></div>
+                    <button class="buy-btn" style="width: 100%; margin-top: auto; padding: 12px 0;" onclick="loadCompareBuild('god_tier')">LOAD THIS BUILD</button>
+                </div>
+
+            </div>
+        </div>
     </div>
 
     <script>
-        // --- 1. Database (Reordered so ultimate build is index 0) ---
+        // --- 1. Database (Restored Missing Components!) ---
         const db = {
             cpu: [
                 { id: 'c_9800x3d', name: 'AMD Ryzen 7 9800X3D', price: 440, score: 17000 },
                 { id: 'c_9950x', name: 'AMD Ryzen 9 9950X', price: 650, score: 24000 },
                 { id: 'c_7950x3d', name: 'AMD Ryzen 9 7950X3D', price: 600, score: 23500 },
                 { id: 'c_7800x3d', name: 'AMD Ryzen 7 7800X3D', price: 350, score: 13500 },
+                { id: 'c_7600x', name: 'AMD Ryzen 5 7600X', price: 200, score: 10500 },
                 { id: 'c_14900k', name: 'Intel Core i9-14900K', price: 550, score: 21000 }
             ],
             gpu: [
@@ -227,12 +335,14 @@
                 { id: 'g_5080', name: 'NVIDIA RTX 5080 16GB', price: 1199, score: 29500 },
                 { id: 'g_4090', name: 'NVIDIA RTX 4090 24GB', price: 1799, score: 36000 },
                 { id: 'g_4080s', name: 'NVIDIA RTX 4080 Super', price: 999, score: 28000 },
+                { id: 'g_4070s', name: 'NVIDIA RTX 4070 Super', price: 599, score: 21000 },
                 { id: 'g_7900xtx', name: 'AMD Radeon RX 7900 XTX', price: 899, score: 29000 }
             ],
             mobo: [
                 { id: 'm_tomax870', name: 'MSI X870 MAG TOMAHAWK WIFI', price: 230 },
                 { id: 'm_godlike', name: 'MSI MEG X870E GODLIKE', price: 1200 },
-                { id: 'm_hero', name: 'ASUS ROG CROSSHAIR X870E HERO', price: 700 }
+                { id: 'm_hero', name: 'ASUS ROG CROSSHAIR X870E HERO', price: 700 },
+                { id: 'm_aorusb650', name: 'Gigabyte B650 AORUS ELITE AX', price: 180 }
             ],
             ram: [
                 { id: 'r_32_6000', name: '32GB (2x16GB) DDR5-6000 CL30', price: 115 },
@@ -242,12 +352,14 @@
             storage: [
                 { id: 's_990_2tb', name: 'Samsung 990 Pro 2TB NVMe', price: 170 },
                 { id: 's_990_1tb', name: 'Samsung 990 Pro 1TB NVMe', price: 110 },
-                { id: 's_990_4tb', name: 'Samsung 990 Pro 4TB NVMe', price: 320 }
+                { id: 's_990_4tb', name: 'Samsung 990 Pro 4TB NVMe', price: 320 },
+                { id: 's_p3_2tb', name: 'Crucial P3 Plus 2TB NVMe', price: 110 }
             ],
             cooling: [
                 { id: 'cool_tryx', name: 'TRYX PANORAMA SE 360mm', price: 250 },
                 { id: 'cool_kraken', name: 'NZXT Kraken Elite 360', price: 280 },
-                { id: 'cool_arctic', name: 'Arctic Liquid Freezer III 360', price: 120 }
+                { id: 'cool_arctic', name: 'Arctic Liquid Freezer III 360', price: 120 },
+                { id: 'cool_peerless', name: 'Thermalright Peerless Assassin 120', price: 35 }
             ],
             psu: [
                 { id: 'p_1000e', name: 'Corsair RM1000e (2025)', price: 145 },
@@ -257,7 +369,9 @@
             case: [
                 { id: 'case_evo', name: 'Lian Li O11 Dynamic EVO RGB', price: 160 },
                 { id: 'case_vision', name: 'Lian Li O11 Vision', price: 140 },
-                { id: 'case_north', name: 'Fractal Design North', price: 140 }
+                { id: 'case_north', name: 'Fractal Design North', price: 140 },
+                { id: 'case_4000d', name: 'Corsair 4000D Airflow', price: 90 },
+                { id: 'case_nv7', name: 'Phanteks NV7', price: 200 }
             ]
         };
 
@@ -268,7 +382,7 @@
             { key: 'psu', label: 'Power Supply' }, { key: 'case', label: 'Chassis' }
         ];
 
-        // --- 2. State Management & Restore Fix ---
+        // --- 2. State Management ---
         let savedState = {};
         try { savedState = JSON.parse(localStorage.getItem('dynamicBuildState')) || {}; } catch (e) {}
         
@@ -276,11 +390,10 @@
         categories.forEach(cat => {
             const savedId = savedState[cat.key];
             const exists = db[cat.key].some(item => item.id === savedId);
-            // If it doesn't exist (or wasn't saved), default to index 0 (which is now the ultimate build)
             state[cat.key] = exists ? savedId : db[cat.key][0].id; 
         });
 
-        // --- 3. Render Selectors ---
+        // --- 3. Render Builder UI ---
         const container = document.getElementById('builder-container');
         categories.forEach(cat => {
             let optionsHTML = '';
@@ -306,8 +419,7 @@
             container.insertAdjacentHTML('beforeend', html);
         });
 
-        // --- 4. Game Profiles & FPS Math ---
-        // Base FPS is benchmarked roughly against an RTX 4090 (Score: 36000) and 7800X3D (Score: 13500)
+        // --- 4. Game Profiles & Math ---
         const gameProfiles = {
             cyberpunk: { name: 'Cyberpunk 2077', base1080: 210, base1440: 160, base4k: 95, base4kRT: 55, cpuLimit: 240, lowMult: 1.8 },
             warzone: { name: 'Call of Duty: Warzone', base1080: 310, base1440: 250, base4k: 160, base4kRT: 0, cpuLimit: 350, lowMult: 1.6 },
@@ -324,12 +436,10 @@
 
         function calculateFPS(gameKey, preset, gpuScore, cpuScore, isAMD) {
             const game = gameProfiles[gameKey];
-            const gpuRatio = gpuScore / 36000; // Relative to RTX 4090
-            const cpuRatio = cpuScore / 13500; // Relative to 7800X3D
+            const gpuRatio = gpuScore / 36000; 
+            const cpuRatio = cpuScore / 13500; 
             
-            // X3D processors get a massive gaming boost that TimeSpy doesn't capture well, so artificially bump CPU ratio
             const adjustedCpuRatio = (state.cpu.includes('x3d') || state.cpu.includes('X3D')) ? cpuRatio * 1.3 : cpuRatio;
-
             const mult = preset === 'low' ? game.lowMult : 1.0;
             const cpuLimitCurrent = game.cpuLimit * adjustedCpuRatio * (preset === 'low' ? 1.2 : 1.0);
 
@@ -338,17 +448,22 @@
             let fps4k = Math.floor(game.base4k * gpuRatio * mult);
             let fps4kRT = game.base4kRT > 0 ? Math.floor(game.base4kRT * gpuRatio) : 0;
 
-            if (preset === 'low') fps4kRT = 0; // RT disabled on low
-
-            // Penalty for AMD GPUs in heavy Path Tracing (RTX Overdrive)
-            if (isAMD && fps4kRT > 0) {
-                fps4kRT = Math.floor(fps4kRT * 0.4); 
-            }
+            if (preset === 'low') fps4kRT = 0;
+            if (isAMD && fps4kRT > 0) fps4kRT = Math.floor(fps4kRT * 0.4); 
 
             return { fps1080, fps1440, fps4k, fps4kRT };
         }
 
-        // --- 5. Main Logic Loop ---
+        // --- 5. Navigation & UI Logic ---
+        function toggleView(view) {
+            document.getElementById('view-builder').style.display = view === 'builder' ? 'grid' : 'none';
+            document.getElementById('view-compare').style.display = view === 'compare' ? 'block' : 'none';
+            
+            document.getElementById('btn-builder').className = view === 'builder' ? 'nav-btn active' : 'nav-btn';
+            document.getElementById('btn-compare').className = view === 'compare' ? 'nav-btn active' : 'nav-btn';
+        }
+
+        // --- 6. Presets Logic ---
         const pcPresets = {
             user_3600: { cpu: 'c_9800x3d', gpu: 'g_5090', mobo: 'm_tomax870', ram: 'r_32_6000', storage: 's_990_2tb', cooling: 'cool_tryx', psu: 'p_1000e', case: 'case_evo' },
             budget_1080p: { cpu: 'c_7600x', gpu: 'g_4070s', mobo: 'm_aorusb650', ram: 'r_32_6000', storage: 's_p3_2tb', cooling: 'cool_peerless', psu: 'p_850e', case: 'case_4000d' },
@@ -358,7 +473,16 @@
         function loadPreset() {
             const presetKey = document.getElementById('pc-preset-selector').value;
             if (presetKey === 'custom') return;
-            
+            applyPresetData(presetKey);
+        }
+
+        function loadCompareBuild(presetKey) {
+            document.getElementById('pc-preset-selector').value = presetKey;
+            applyPresetData(presetKey);
+            toggleView('builder'); // Instantly switch back to builder
+        }
+
+        function applyPresetData(presetKey) {
             const preset = pcPresets[presetKey];
             if (preset) {
                 categories.forEach(cat => {
@@ -374,9 +498,7 @@
             const selectedId = state[categoryKey];
             const item = db[categoryKey].find(i => i.id === selectedId);
             if (item) {
-                // Opens a new tab searching Amazon for the exact part name
-                const searchUrl = `https://www.amazon.com/s?k=${encodeURIComponent(item.name)}`;
-                window.open(searchUrl, '_blank');
+                window.open(`https://www.amazon.com/s?k=${encodeURIComponent(item.name)}`, '_blank');
             }
         }
 
@@ -408,13 +530,11 @@
                 if (cat.key === 'cpu') cpuScore = item.score;
             });
 
-            // Update Price & 3DMark
             document.getElementById('display-price').innerText = '$' + totalPrice.toLocaleString();
             const overallScore = Math.floor(1 / ((0.85 / gpuScore) + (0.15 / cpuScore)));
             document.getElementById('display-score').innerText = overallScore.toLocaleString();
             document.getElementById('score-bar').style.width = `${Math.min((overallScore / 45000) * 100, 100)}%`;
 
-            // Update FPS
             const gameKey = document.getElementById('game-selector').value;
             const preset = document.getElementById('preset-selector').value;
             const fps = calculateFPS(gameKey, preset, gpuScore, cpuScore, isAMD);
@@ -436,7 +556,12 @@
             }
         }
 
+        // --- Init ---
         updateTelemetry();
+        // If the grid-layout breaks on mobile, ensure we respect the view toggle
+        if (window.innerWidth <= 900) {
+           document.getElementById('view-builder').style.display = 'grid'; // Maintain grid on mobile but stack it via css
+        }
     </script>
 </body>
 </html>
