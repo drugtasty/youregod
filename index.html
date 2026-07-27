@@ -18,6 +18,8 @@
             --text-secondary: #888888;
             --accent: #10b981;
             --accent-glow: rgba(16, 185, 129, 0.5);
+            --danger: #ef4444;
+            --warning: #f59e0b;
         }
 
         body {
@@ -85,6 +87,20 @@
         select:hover { border-color: var(--border-hover); }
         select:focus { border-color: var(--text-secondary); }
         
+        input[type="text"] {
+            background-color: #000; color: #fff; border: 1px solid var(--border-color);
+            padding: 4px 8px; border-radius: 4px; font-family: 'Inter', sans-serif;
+            font-size: 0.7rem; outline: none; transition: border-color 0.2s;
+        }
+        input[type="text"]:focus { border-color: var(--accent); }
+
+        .btn-small {
+            background-color: #fff; color: #000; border: none; border-radius: 4px;
+            padding: 4px 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+            font-weight: 700; cursor: pointer; transition: all 0.2s ease;
+        }
+        .btn-small:hover { background-color: var(--accent); color: #fff; }
+        
         /* Buy Button */
         .buy-btn {
             background-color: #ffffff;
@@ -100,6 +116,7 @@
         }
         .buy-btn:hover { background-color: #ef4444; color: #ffffff; }
         .buy-btn:active { transform: scale(0.95); }
+        .buy-btn:disabled { background-color: #333; color: #666; cursor: not-allowed; }
 
         /* Stats */
         .stat-block { padding: 20px; border-bottom: 1px solid var(--border-color); }
@@ -122,50 +139,47 @@
         }
         
         .fps-card {
-            background-color: #000;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+            background-color: #000; border: 1px solid var(--border-color);
+            border-radius: 4px; padding: 12px; display: flex; flex-direction: column; gap: 4px;
         }
-        
         .fps-res { font-size: 0.65rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
         .fps-val { font-size: 1.5rem; font-weight: 700; color: #fff; }
         .fps-val span { font-size: 0.8rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-weight: 400; }
 
+        /* AI Assistant */
+        .ai-panel {
+            background-color: rgba(16, 185, 129, 0.05);
+            border-left: 3px solid var(--accent);
+            padding: 15px; margin: 20px; border-radius: 0 4px 4px 0;
+            font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);
+        }
+        .ai-panel strong { color: var(--text-primary); font-family: 'JetBrains Mono', monospace; display: block; margin-bottom: 5px;}
+        .ai-panel.warning { border-color: var(--warning); background-color: rgba(245, 158, 11, 0.05); }
+        .ai-panel.danger { border-color: var(--danger); background-color: rgba(239, 68, 68, 0.05); }
+
         /* Compare View */
         .compare-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
         }
         @media (max-width: 800px) { .compare-grid { grid-template-columns: 1fr; } }
 
         .compare-card {
-            background-color: var(--bg-panel);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
+            background-color: var(--bg-panel); border: 1px solid var(--border-color);
+            border-radius: 6px; padding: 24px; display: flex; flex-direction: column;
             transition: border-color 0.2s;
         }
         .compare-card:hover { border-color: var(--text-secondary); }
         .compare-card h3 { margin: 0 0 10px 0; font-size: 1.2rem; }
-        .compare-price { font-family: 'JetBrains Mono', monospace; font-size: 2rem; font-weight: 700; color: var(--accent); margin-bottom: 20px; }
+        .compare-price { font-family: 'JetBrains Mono', monospace; font-size: 2rem; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
         
-        .compare-specs { list-style: none; padding: 0; margin: 0 0 20px 0; border-top: 1px solid var(--border-color); padding-top: 15px;}
+        .compare-ptp { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+        .compare-ptp span { color: #fff; font-weight: 700; }
+
+        .compare-specs { list-style: none; padding: 0; margin: 0 0 20px 0; }
         .compare-specs li { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
         .compare-specs li::before { content: '>'; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
 
-        .compare-fps {
-            font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
-            background: #000; padding: 10px; border-radius: 4px;
-            border: 1px solid var(--border-color); margin-bottom: 10px;
-        }
-        .compare-fps span { color: #fff; font-weight: 700; }
+        .empty-compare { text-align: center; color: var(--text-secondary); padding: 50px; grid-column: 1 / -1; font-family: 'JetBrains Mono', monospace; border: 1px dashed var(--border-color); border-radius: 6px; }
     </style>
 </head>
 <body>
@@ -174,13 +188,13 @@
         <!-- Navigation -->
         <nav class="top-nav">
             <button class="nav-btn active" onclick="toggleView('builder')" id="btn-builder">🛠️ BUILDER</button>
-            <button class="nav-btn" onclick="toggleView('compare')" id="btn-compare">📊 COMPARE PRESETS</button>
+            <button class="nav-btn" onclick="toggleView('compare')" id="btn-compare">📊 COMPARE PRESETS (PtP)</button>
         </nav>
 
         <header>
             <div class="header-title">
                 <h1>Ultimate Build</h1>
-                <p>Config.v3 // Live FPS Estimator</p>
+                <p>Config.v4 // AI Assistant // PtP Analytics</p>
             </div>
             <div class="status-indicator">
                 <div class="status-dot"></div>
@@ -194,12 +208,13 @@
             <div class="panel">
                 <div class="panel-header" style="align-items: center;">
                     <span>Part Selection</span>
-                    <select id="pc-preset-selector" onchange="loadPreset()" style="width: auto; padding: 4px 8px; font-size: 0.7rem; margin-left: 10px;">
-                        <option value="custom">Custom Build...</option>
-                        <option value="user_3600">My $3,600 Ultimate Build</option>
-                        <option value="budget_1080p">Esports Budget 1080p</option>
-                        <option value="god_tier">The God Tier</option>
-                    </select>
+                    <div style="display: flex; gap: 5px; align-items: center;">
+                        <select id="pc-preset-selector" onchange="loadPreset()" style="width: auto; padding: 4px 8px; font-size: 0.7rem; margin-left: 10px;">
+                            <option value="custom">-- Load Saved Preset --</option>
+                        </select>
+                        <input type="text" id="preset-name" placeholder="Name preset..." style="width: 100px;">
+                        <button class="btn-small" onclick="saveCustomPreset()">SAVE</button>
+                    </div>
                 </div>
                 <div id="builder-container"></div>
             </div>
@@ -260,69 +275,30 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- AI Panel -->
+                <div class="ai-panel" id="ai-panel">
+                    <strong>AI ASSISTANT</strong>
+                    <span id="ai-text">Please select components to generate a build analysis.</span>
+                </div>
+
             </div>
         </div>
 
         <!-- COMPARE VIEW -->
         <div id="view-compare" style="display: none;">
-            <div class="compare-grid">
-                
-                <!-- Budget Build -->
-                <div class="compare-card">
-                    <h3>Esports Budget 1080p</h3>
-                    <div class="compare-price">$945</div>
-                    <ul class="compare-specs">
-                        <li>AMD Ryzen 5 7600X</li>
-                        <li>NVIDIA RTX 4070 Super</li>
-                        <li>Gigabyte B650 AORUS</li>
-                        <li>32GB DDR5-6000</li>
-                    </ul>
-                    <div class="compare-fps">Cyberpunk 1440p (High): <span>~93 FPS</span></div>
-                    <div class="compare-fps">Roblox Heavy (Low): <span>~180 FPS</span></div>
-                    <div class="compare-fps">Valorant 1080p (Comp): <span>~520 FPS</span></div>
-                    <button class="buy-btn" style="width: 100%; margin-top: auto; padding: 12px 0;" onclick="loadCompareBuild('budget_1080p')">LOAD THIS BUILD</button>
-                </div>
-
-                <!-- Ultimate Build -->
-                <div class="compare-card" style="border-color: var(--accent);">
-                    <h3>My $3,600 Ultimate Build</h3>
-                    <div class="compare-price">$3,509</div>
-                    <ul class="compare-specs">
-                        <li><strong style="color: #fff;">AMD Ryzen 7 9800X3D</strong></li>
-                        <li><strong style="color: #fff;">NVIDIA RTX 5090 32GB</strong></li>
-                        <li>MSI X870 Tomahawk</li>
-                        <li>32GB DDR5-6000</li>
-                    </ul>
-                    <div class="compare-fps">Cyberpunk 4K (Path Tracing): <span>~62 FPS</span></div>
-                    <div class="compare-fps">Roblox Heavy (Low): <span>~278 FPS</span></div>
-                    <div class="compare-fps">Valorant 1080p (Comp): <span>~1000+ FPS</span></div>
-                    <button class="buy-btn" style="width: 100%; margin-top: auto; padding: 12px 0;" onclick="loadCompareBuild('user_3600')">LOAD THIS BUILD</button>
-                </div>
-
-                <!-- God Tier -->
-                <div class="compare-card">
-                    <h3>The God Tier</h3>
-                    <div class="compare-price">$5,578</div>
-                    <ul class="compare-specs">
-                        <li>AMD Ryzen 9 9950X</li>
-                        <li>NVIDIA RTX 5090 32GB</li>
-                        <li>MSI MEG GODLIKE ($1200)</li>
-                        <li>96GB DDR5-6400</li>
-                    </ul>
-                    <div class="compare-fps">Cyberpunk 4K (Path Tracing): <span>~62 FPS</span></div>
-                    <div class="compare-fps">Roblox Heavy (Low): <span>~251 FPS</span></div>
-                    <div class="compare-fps">Valorant 1080p (Comp): <span>~976 FPS</span></div>
-                    <button class="buy-btn" style="width: 100%; margin-top: auto; padding: 12px 0;" onclick="loadCompareBuild('god_tier')">LOAD THIS BUILD</button>
-                </div>
-
+            <div class="compare-grid" id="compare-grid-container">
+                <!-- Dynamically generated custom presets will go here -->
             </div>
         </div>
     </div>
 
     <script>
-        // --- 1. Database (Restored Missing Components!) ---
+        // --- 1. Database (Blank Slate Architecture) ---
+        const dummyItem = { id: 'none', name: '-- Choose a Component --', price: 0, score: 0 };
         const db = {
             cpu: [
+                dummyItem,
                 { id: 'c_9800x3d', name: 'AMD Ryzen 7 9800X3D', price: 440, score: 17000 },
                 { id: 'c_9950x', name: 'AMD Ryzen 9 9950X', price: 650, score: 24000 },
                 { id: 'c_7950x3d', name: 'AMD Ryzen 9 7950X3D', price: 600, score: 23500 },
@@ -331,6 +307,7 @@
                 { id: 'c_14900k', name: 'Intel Core i9-14900K', price: 550, score: 21000 }
             ],
             gpu: [
+                dummyItem,
                 { id: 'g_5090', name: 'NVIDIA RTX 5090 32GB', price: 1999, score: 41000 },
                 { id: 'g_5080', name: 'NVIDIA RTX 5080 16GB', price: 1199, score: 29500 },
                 { id: 'g_4090', name: 'NVIDIA RTX 4090 24GB', price: 1799, score: 36000 },
@@ -339,34 +316,40 @@
                 { id: 'g_7900xtx', name: 'AMD Radeon RX 7900 XTX', price: 899, score: 29000 }
             ],
             mobo: [
+                dummyItem,
                 { id: 'm_tomax870', name: 'MSI X870 MAG TOMAHAWK WIFI', price: 230 },
                 { id: 'm_godlike', name: 'MSI MEG X870E GODLIKE', price: 1200 },
                 { id: 'm_hero', name: 'ASUS ROG CROSSHAIR X870E HERO', price: 700 },
                 { id: 'm_aorusb650', name: 'Gigabyte B650 AORUS ELITE AX', price: 180 }
             ],
             ram: [
+                dummyItem,
                 { id: 'r_32_6000', name: '32GB (2x16GB) DDR5-6000 CL30', price: 115 },
                 { id: 'r_64_6000', name: '64GB (2x32GB) DDR5-6000 CL30', price: 210 },
                 { id: 'r_96_6400', name: '96GB (2x48GB) DDR5-6400 CL32', price: 350 }
             ],
             storage: [
+                dummyItem,
                 { id: 's_990_2tb', name: 'Samsung 990 Pro 2TB NVMe', price: 170 },
                 { id: 's_990_1tb', name: 'Samsung 990 Pro 1TB NVMe', price: 110 },
                 { id: 's_990_4tb', name: 'Samsung 990 Pro 4TB NVMe', price: 320 },
                 { id: 's_p3_2tb', name: 'Crucial P3 Plus 2TB NVMe', price: 110 }
             ],
             cooling: [
+                dummyItem,
                 { id: 'cool_tryx', name: 'TRYX PANORAMA SE 360mm', price: 250 },
                 { id: 'cool_kraken', name: 'NZXT Kraken Elite 360', price: 280 },
                 { id: 'cool_arctic', name: 'Arctic Liquid Freezer III 360', price: 120 },
                 { id: 'cool_peerless', name: 'Thermalright Peerless Assassin 120', price: 35 }
             ],
             psu: [
+                dummyItem,
                 { id: 'p_1000e', name: 'Corsair RM1000e (2025)', price: 145 },
                 { id: 'p_1600i', name: 'Corsair AX1600i', price: 600 },
                 { id: 'p_850e', name: 'Corsair RM850e', price: 120 }
             ],
             case: [
+                dummyItem,
                 { id: 'case_evo', name: 'Lian Li O11 Dynamic EVO RGB', price: 160 },
                 { id: 'case_vision', name: 'Lian Li O11 Vision', price: 140 },
                 { id: 'case_north', name: 'Fractal Design North', price: 140 },
@@ -382,24 +365,74 @@
             { key: 'psu', label: 'Power Supply' }, { key: 'case', label: 'Chassis' }
         ];
 
-        // --- 2. State Management ---
-        let savedState = {};
-        try { savedState = JSON.parse(localStorage.getItem('dynamicBuildState')) || {}; } catch (e) {}
-        
-        const state = {};
-        categories.forEach(cat => {
-            const savedId = savedState[cat.key];
-            const exists = db[cat.key].some(item => item.id === savedId);
-            state[cat.key] = exists ? savedId : db[cat.key][0].id; 
-        });
+        // --- 2. State & Preset Management ---
+        let state = {};
+        categories.forEach(cat => state[cat.key] = 'none');
+
+        let savedCustomPresets = [];
+        try { 
+            savedCustomPresets = JSON.parse(localStorage.getItem('savedCustomPresets')) || []; 
+        } catch (e) {}
+
+        function updatePresetDropdown() {
+            const select = document.getElementById('pc-preset-selector');
+            select.innerHTML = '<option value="custom">-- Load Saved Preset --</option>';
+            savedCustomPresets.forEach((preset, index) => {
+                select.insertAdjacentHTML('beforeend', `<option value="${index}">${preset.name} ($${preset.price})</option>`);
+            });
+        }
+
+        function saveCustomPreset() {
+            const nameInput = document.getElementById('preset-name');
+            const name = nameInput.value.trim() || 'Untitled Build';
+            
+            // Calculate current price and score to save with preset
+            let price = 0; let gpuS = 0; let cpuS = 0;
+            categories.forEach(cat => {
+                const item = db[cat.key].find(i => i.id === state[cat.key]) || dummyItem;
+                price += item.price;
+                if(cat.key === 'gpu') gpuS = item.score;
+                if(cat.key === 'cpu') cpuS = item.score;
+            });
+            const score = (gpuS > 0 && cpuS > 0) ? Math.floor(1 / ((0.85 / gpuS) + (0.15 / cpuS))) : 0;
+            
+            const newPreset = { name, state: { ...state }, price, score, timestamp: Date.now() };
+            savedCustomPresets.push(newPreset);
+            localStorage.setItem('savedCustomPresets', JSON.stringify(savedCustomPresets));
+            
+            nameInput.value = '';
+            updatePresetDropdown();
+            document.getElementById('pc-preset-selector').value = savedCustomPresets.length - 1;
+            renderCompareGrid(); // Update compare view dynamically
+            alert(`Preset "${name}" saved! Check the Compare Presets tab to see its Price-to-Performance ratio.`);
+        }
+
+        function loadPreset() {
+            const val = document.getElementById('pc-preset-selector').value;
+            if (val === 'custom') return;
+            
+            const preset = savedCustomPresets[parseInt(val)];
+            if (preset) {
+                categories.forEach(cat => {
+                    state[cat.key] = preset.state[cat.key];
+                    document.getElementById(`select-${cat.key}`).value = preset.state[cat.key];
+                });
+                updateTelemetry();
+            }
+        }
+
+        function loadCompareBuild(index) {
+            document.getElementById('pc-preset-selector').value = index;
+            loadPreset();
+            toggleView('builder');
+        }
 
         // --- 3. Render Builder UI ---
         const container = document.getElementById('builder-container');
         categories.forEach(cat => {
             let optionsHTML = '';
             db[cat.key].forEach(item => {
-                const isSelected = state[cat.key] === item.id ? 'selected' : '';
-                optionsHTML += `<option value="${item.id}" ${isSelected}>${item.name}</option>`;
+                optionsHTML += `<option value="${item.id}">${item.name}</option>`;
             });
 
             const html = `
@@ -412,7 +445,7 @@
                         <select id="select-${cat.key}" onchange="handleSelect('${cat.key}')" style="flex: 1;">
                             ${optionsHTML}
                         </select>
-                        <button class="buy-btn" onclick="buyItem('${cat.key}')">BUY</button>
+                        <button id="buy-${cat.key}" class="buy-btn" onclick="buyItem('${cat.key}')" disabled>BUY</button>
                     </div>
                 </div>
             `;
@@ -435,6 +468,8 @@
         };
 
         function calculateFPS(gameKey, preset, gpuScore, cpuScore, isAMD) {
+            if(gpuScore === 0 || cpuScore === 0) return { fps1080: 0, fps1440: 0, fps4k: 0, fps4kRT: 0 };
+
             const game = gameProfiles[gameKey];
             const gpuRatio = gpuScore / 36000; 
             const cpuRatio = cpuScore / 13500; 
@@ -461,43 +496,13 @@
             
             document.getElementById('btn-builder').className = view === 'builder' ? 'nav-btn active' : 'nav-btn';
             document.getElementById('btn-compare').className = view === 'compare' ? 'nav-btn active' : 'nav-btn';
-        }
-
-        // --- 6. Presets Logic ---
-        const pcPresets = {
-            user_3600: { cpu: 'c_9800x3d', gpu: 'g_5090', mobo: 'm_tomax870', ram: 'r_32_6000', storage: 's_990_2tb', cooling: 'cool_tryx', psu: 'p_1000e', case: 'case_evo' },
-            budget_1080p: { cpu: 'c_7600x', gpu: 'g_4070s', mobo: 'm_aorusb650', ram: 'r_32_6000', storage: 's_p3_2tb', cooling: 'cool_peerless', psu: 'p_850e', case: 'case_4000d' },
-            god_tier: { cpu: 'c_9950x', gpu: 'g_5090', mobo: 'm_godlike', ram: 'r_96_6400', storage: 's_990_4tb', cooling: 'cool_kraken', psu: 'p_1600i', case: 'case_nv7' }
-        };
-
-        function loadPreset() {
-            const presetKey = document.getElementById('pc-preset-selector').value;
-            if (presetKey === 'custom') return;
-            applyPresetData(presetKey);
-        }
-
-        function loadCompareBuild(presetKey) {
-            document.getElementById('pc-preset-selector').value = presetKey;
-            applyPresetData(presetKey);
-            toggleView('builder'); // Instantly switch back to builder
-        }
-
-        function applyPresetData(presetKey) {
-            const preset = pcPresets[presetKey];
-            if (preset) {
-                categories.forEach(cat => {
-                    state[cat.key] = preset[cat.key];
-                    document.getElementById(`select-${cat.key}`).value = preset[cat.key];
-                });
-                localStorage.setItem('dynamicBuildState', JSON.stringify(state));
-                updateTelemetry();
-            }
+            if (view === 'compare') renderCompareGrid();
         }
 
         function buyItem(categoryKey) {
             const selectedId = state[categoryKey];
             const item = db[categoryKey].find(i => i.id === selectedId);
-            if (item) {
+            if (item && item.id !== 'none') {
                 window.open(`https://www.amazon.com/s?k=${encodeURIComponent(item.name)}`, '_blank');
             }
         }
@@ -506,8 +511,41 @@
             document.getElementById('pc-preset-selector').value = 'custom';
             const selectEl = document.getElementById(`select-${categoryKey}`);
             state[categoryKey] = selectEl.value;
-            localStorage.setItem('dynamicBuildState', JSON.stringify(state));
             updateTelemetry();
+        }
+
+        // --- 6. The AI Assistant Engine ---
+        function runAIAssistant(missingCount, gpuScore, cpuScore, totalPrice, psuPrice) {
+            const panel = document.getElementById('ai-panel');
+            const text = document.getElementById('ai-text');
+            
+            panel.className = 'ai-panel'; // reset
+
+            if (missingCount > 0) {
+                text.innerText = `Please select all components. Missing: ${missingCount} parts.`;
+                return;
+            }
+
+            if (gpuScore > 30000 && cpuScore < 15000) {
+                panel.className = 'ai-panel danger';
+                text.innerText = "CRITICAL WARNING: Your high-end graphics card is severely bottlenecked by your weak CPU. You will lose massive frames at 1080p and 1440p. Upgrade your CPU!";
+                return;
+            }
+
+            if (cpuScore > 20000 && gpuScore < 25000) {
+                panel.className = 'ai-panel warning';
+                text.innerText = "ADVICE: Your CPU is completely overkill for this graphics card. If your goal is gaming, save money on the CPU and buy a faster GPU instead.";
+                return;
+            }
+
+            if (totalPrice > 2500 && psuPrice < 130) {
+                panel.className = 'ai-panel warning';
+                text.innerText = "WARNING: You are building a very expensive, high-power system but cheaping out on the Power Supply. Consider upgrading to a 1000W+ unit.";
+                return;
+            }
+
+            // If no bottlenecks
+            text.innerText = "ANALYSIS COMPLETE: This build is beautifully balanced with no obvious bottlenecks. Ready for deployment.";
         }
 
         function updateTelemetry() {
@@ -515,23 +553,33 @@
             let gpuScore = 0;
             let cpuScore = 0;
             let isAMD = false;
+            let missingCount = 0;
+            let psuPrice = 0;
 
             categories.forEach(cat => {
                 const selectedId = state[cat.key];
-                const item = db[cat.key].find(i => i.id === selectedId);
+                const item = db[cat.key].find(i => i.id === selectedId) || dummyItem;
                 
-                totalPrice += item.price;
-                document.getElementById(`price-${cat.key}`).innerText = '$' + item.price;
+                if (item.id === 'none') {
+                    missingCount++;
+                    document.getElementById(`price-${cat.key}`).innerText = '-';
+                    document.getElementById(`buy-${cat.key}`).disabled = true;
+                } else {
+                    totalPrice += item.price;
+                    document.getElementById(`price-${cat.key}`).innerText = '$' + item.price;
+                    document.getElementById(`buy-${cat.key}`).disabled = false;
+                }
 
                 if (cat.key === 'gpu') {
                     gpuScore = item.score;
                     if (item.name.includes('Radeon')) isAMD = true;
                 }
                 if (cat.key === 'cpu') cpuScore = item.score;
+                if (cat.key === 'psu') psuPrice = item.price;
             });
 
             document.getElementById('display-price').innerText = '$' + totalPrice.toLocaleString();
-            const overallScore = Math.floor(1 / ((0.85 / gpuScore) + (0.15 / cpuScore)));
+            const overallScore = (gpuScore > 0 && cpuScore > 0) ? Math.floor(1 / ((0.85 / gpuScore) + (0.15 / cpuScore))) : 0;
             document.getElementById('display-score').innerText = overallScore.toLocaleString();
             document.getElementById('score-bar').style.width = `${Math.min((overallScore / 45000) * 100, 100)}%`;
 
@@ -554,13 +602,53 @@
                 document.getElementById('fps-4k-rt').innerHTML = `N/A`;
                 document.getElementById('label-4k-rt').innerText = preset === 'low' ? 'Ray Tracing Off' : '4K Path Tracing';
             }
+
+            runAIAssistant(missingCount, gpuScore, cpuScore, totalPrice, psuPrice);
+        }
+
+        // --- 7. Compare View Rendering ---
+        function renderCompareGrid() {
+            const container = document.getElementById('compare-grid-container');
+            container.innerHTML = '';
+
+            if (savedCustomPresets.length === 0) {
+                container.innerHTML = '<div class="empty-compare">You have not saved any custom presets yet!<br><br>Go back to the Builder, pick your parts, and click SAVE PRESET.</div>';
+                return;
+            }
+
+            savedCustomPresets.forEach((preset, index) => {
+                // Fetch display names for CPU and GPU
+                const cpuName = db['cpu'].find(i => i.id === preset.state.cpu)?.name || 'Unknown CPU';
+                const gpuName = db['gpu'].find(i => i.id === preset.state.gpu)?.name || 'Unknown GPU';
+                const moboName = db['mobo'].find(i => i.id === preset.state.mobo)?.name || 'Unknown Mobo';
+                const ramName = db['ram'].find(i => i.id === preset.state.ram)?.name || 'Unknown RAM';
+
+                // Price to Performance (PtP) Calculation = Score per Dollar
+                let ptpRatio = (preset.price > 0 && preset.score > 0) ? (preset.score / preset.price).toFixed(1) : 0;
+                
+                const cardHtml = `
+                    <div class="compare-card">
+                        <h3>${preset.name}</h3>
+                        <div class="compare-price">$${preset.price.toLocaleString()}</div>
+                        <div class="compare-ptp">PtP Ratio (Score per Dollar): <span style="color: var(--accent);">${ptpRatio}</span></div>
+                        <ul class="compare-specs">
+                            <li>${cpuName}</li>
+                            <li>${gpuName}</li>
+                            <li>${moboName}</li>
+                            <li>${ramName}</li>
+                        </ul>
+                        <button class="buy-btn" style="width: 100%; margin-top: auto; padding: 12px 0;" onclick="loadCompareBuild(${index})">LOAD THIS BUILD</button>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHtml);
+            });
         }
 
         // --- Init ---
+        updatePresetDropdown();
         updateTelemetry();
-        // If the grid-layout breaks on mobile, ensure we respect the view toggle
         if (window.innerWidth <= 900) {
-           document.getElementById('view-builder').style.display = 'grid'; // Maintain grid on mobile but stack it via css
+           document.getElementById('view-builder').style.display = 'grid'; 
         }
     </script>
 </body>
