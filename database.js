@@ -31,6 +31,10 @@ const db = {
         { id: 'c_3700x', name: 'AMD Ryzen 7 3700X', price: 150, score: 8000, socket: 'AM4' },
         { id: 'c_3600', name: 'AMD Ryzen 5 3600', price: 80, score: 6500, socket: 'AM4' },
         { id: 'c_3100', name: 'AMD Ryzen 3 3100', price: 60, score: 5000, socket: 'AM4' },
+        // LGA1851 (Intel Core Ultra 200S)
+        { id: 'c_ultra9_285k', name: 'Intel Core Ultra 9 285K', price: 590, score: 23000, socket: 'LGA1851' },
+        { id: 'c_ultra7_265k', name: 'Intel Core Ultra 7 265K', price: 400, score: 20000, socket: 'LGA1851' },
+        { id: 'c_ultra5_245k', name: 'Intel Core Ultra 5 245K', price: 310, score: 15500, socket: 'LGA1851' },
         // LGA1700 (Intel 12th/13th/14th Gen)
         { id: 'c_14900k', name: 'Intel Core i9-14900K', price: 550, score: 21000, socket: 'LGA1700' },
         { id: 'c_14700k', name: 'Intel Core i7-14700K', price: 400, score: 19500, socket: 'LGA1700' },
@@ -57,6 +61,9 @@ const db = {
     ],
     gpu: [
         dummyItem,
+        // RTX 60 series (Future)
+        { id: 'g_6090', name: 'NVIDIA RTX 6090 48GB', price: 2499, score: 48000 },
+        { id: 'g_6080', name: 'NVIDIA RTX 6080 24GB', price: 1499, score: 38000 },
         // RTX 50 series
         { id: 'g_5090', name: 'NVIDIA RTX 5090 32GB', price: 1999, score: 41000 },
         { id: 'g_5080', name: 'NVIDIA RTX 5080 16GB', price: 1199, score: 29500 },
@@ -141,6 +148,10 @@ const db = {
         { id: 'm_aorusb450', name: 'Gigabyte B450 AORUS M', price: 90, socket: 'AM4', ramType: 'DDR4' },
         { id: 'm_ds3h', name: 'Gigabyte B450M DS3H WIFI', price: 75, socket: 'AM4', ramType: 'DDR4' },
         { id: 'm_a320', name: 'ASUS Prime A320M-K', price: 50, socket: 'AM4', ramType: 'DDR4' },
+        // LGA1851 (DDR5)
+        { id: 'm_z890hero', name: 'ASUS ROG MAXIMUS Z890 HERO', price: 650, socket: 'LGA1851', ramType: 'DDR5' },
+        { id: 'm_z890tomahawk', name: 'MSI MAG Z890 TOMAHAWK WIFI', price: 280, socket: 'LGA1851', ramType: 'DDR5' },
+        { id: 'm_z890aorus', name: 'Gigabyte Z890 AORUS ELITE AX', price: 240, socket: 'LGA1851', ramType: 'DDR5' },
         // LGA1700 (DDR5)
         { id: 'm_z790hero', name: 'ASUS ROG MAXIMUS Z790 HERO', price: 600, socket: 'LGA1700', ramType: 'DDR5' },
         { id: 'm_z790aorus', name: 'Gigabyte Z790 AORUS MASTER', price: 450, socket: 'LGA1700', ramType: 'DDR5' },

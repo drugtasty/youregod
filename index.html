@@ -209,6 +209,8 @@
     </style>
 </head>
 <body>
+    <!-- Snow Canvas Background -->
+    <canvas id="snowCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.7;"></canvas>
 
     <!-- Custom Part Injector Modal -->
     <div class="modal-overlay" id="custom-modal">
@@ -910,6 +912,61 @@
                 setTimeout(() => btn.innerText = orig, 2000);
             });
         }
+
+        function startLoading(btn) {
+            const orig = btn.innerText;
+            btn.innerText = "Processing...";
+            setTimeout(() => btn.innerText = orig, 1000);
+        }
+
+        // --- Snow Effect ---
+        const snowCanvas = document.getElementById('snowCanvas');
+        const sCtx = snowCanvas.getContext('2d');
+        let sWidth, sHeight;
+        let particles = [];
+        
+        function resizeSnow() {
+            sWidth = snowCanvas.width = window.innerWidth;
+            sHeight = snowCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeSnow);
+        resizeSnow();
+
+        for (let i = 0; i < 150; i++) {
+            particles.push({
+                x: Math.random() * sWidth, y: Math.random() * sHeight,
+                r: Math.random() * 3 + 1, d: Math.random() * 100
+            });
+        }
+
+        let snowAngle = 0;
+        function renderSnow() {
+            sCtx.clearRect(0, 0, sWidth, sHeight);
+            sCtx.fillStyle = "rgba(255, 255, 255, 0.6)";
+            sCtx.beginPath();
+            for (let i = 0; i < 150; i++) {
+                const p = particles[i];
+                sCtx.moveTo(p.x, p.y);
+                sCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+            }
+            sCtx.fill();
+            
+            snowAngle += 0.01;
+            for (let i = 0; i < 150; i++) {
+                const p = particles[i];
+                p.y += Math.cos(snowAngle + p.d) + 1 + p.r / 2;
+                p.x += Math.sin(snowAngle) * 2;
+                if (p.x > sWidth + 5 || p.x < -5 || p.y > sHeight) {
+                    if (i % 3 > 0) { particles[i] = { x: Math.random() * sWidth, y: -10, r: p.r, d: p.d }; }
+                    else {
+                        if (Math.sin(snowAngle) > 0) { particles[i] = { x: -5, y: Math.random() * sHeight, r: p.r, d: p.d }; }
+                        else { particles[i] = { x: sWidth + 5, y: Math.random() * sHeight, r: p.r, d: p.d }; }
+                    }
+                }
+            }
+            requestAnimationFrame(renderSnow);
+        }
+        renderSnow();
 
         async function handleAIPrompt() {
             const promptInput = document.getElementById('ai-prompt');
