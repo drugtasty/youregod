@@ -88,6 +88,16 @@
         }
         .btn-small:hover { background-color: var(--accent); color: #fff; }
         
+        .filter-container { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+        .filter-btn {
+            background-color: transparent; color: var(--text-secondary);
+            border: 1px solid var(--border-color); border-radius: 4px;
+            padding: 2px 6px; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem; cursor: pointer; transition: all 0.2s ease;
+        }
+        .filter-btn:hover { border-color: var(--text-primary); color: var(--text-primary); }
+        .filter-btn.active { background-color: var(--accent); color: #000; border-color: var(--accent); }
+
         /* Buy Button */
         .buy-btn {
             background-color: #ffffff; color: #000000; border: none; border-radius: 4px;
@@ -271,9 +281,20 @@
             { key: 'psu', label: 'Power Supply' }, { key: 'case', label: 'Chassis' }
         ];
 
+        const categoryFilters = {
+            cpu: [{id:'all', label:'ALL'}, {id:'am5', label:'AM5'}, {id:'am4', label:'AM4'}, {id:'lga1700', label:'LGA1700'}, {id:'lga1200', label:'LGA1200'}],
+            gpu: [{id:'all', label:'ALL'}, {id:'rtx 50', label:'RTX 50'}, {id:'rtx 40', label:'RTX 40'}, {id:'rtx 30', label:'RTX 30'}, {id:'rx 7', label:'RX 7000'}, {id:'rx 6', label:'RX 6000'}],
+            mobo: [{id:'all', label:'ALL'}, {id:'am5', label:'AM5'}, {id:'am4', label:'AM4'}, {id:'lga1700', label:'LGA1700'}, {id:'lga1200', label:'LGA1200'}],
+            ram: [{id:'all', label:'ALL'}, {id:'ddr5', label:'DDR5'}, {id:'ddr4', label:'DDR4'}],
+            storage: [{id:'all', label:'ALL'}, {id:'4tb', label:'4TB'}, {id:'2tb', label:'2TB'}, {id:'1tb', label:'1TB'}],
+            psu: [{id:'all', label:'ALL'}, {id:'1000', label:'1000W+'}, {id:'850', label:'850W'}, {id:'750', label:'750W'}],
+            cooling: [{id:'all', label:'ALL'}, {id:'360', label:'360mm'}, {id:'240', label:'240mm'}, {id:'air', label:'Air'}]
+        };
+
         // --- 2. State & Preset Management ---
         let state = {};
-        categories.forEach(cat => state[cat.key] = 'none');
+        let filterState = {};
+        categories.forEach(cat => { state[cat.key] = 'none'; filterState[cat.key] = 'all'; });
         let aiInterventionMessage = ""; // Holds dynamic compatibility warnings
 
         let savedCustomPresets = [];
@@ -331,12 +352,23 @@
             const container = document.getElementById('builder-container');
             container.innerHTML = '';
             categories.forEach(cat => {
+                let filterHTML = '';
+                if (categoryFilters[cat.key]) {
+                    filterHTML = '<div class="filter-container" id="filters-' + cat.key + '">';
+                    categoryFilters[cat.key].forEach(f => {
+                        const isActive = filterState[cat.key] === f.id ? 'active' : '';
+                        filterHTML += `<button class="filter-btn ${isActive}" onclick="setFilter('${cat.key}', '${f.id}')">${f.label}</button>`;
+                    });
+                    filterHTML += '</div>';
+                }
+
                 const html = `
                     <div class="part-item">
                         <div class="part-header">
                             <div class="part-category">${cat.label}</div>
                             <div class="part-price" id="price-${cat.key}">$0</div>
                         </div>
+                        ${filterHTML}
                         <div style="display: flex; gap: 8px;">
                             <select id="select-${cat.key}" onchange="handleSelect('${cat.key}')" style="flex: 1;"></select>
                             <button id="buy-${cat.key}" class="buy-btn" onclick="buyItem('${cat.key}')" disabled>BUY</button>
@@ -345,6 +377,15 @@
                 `;
                 container.insertAdjacentHTML('beforeend', html);
             });
+            refreshDropdowns();
+        }
+
+        function setFilter(catKey, filterId) {
+            filterState[catKey] = filterId;
+            const container = document.getElementById(`filters-${catKey}`);
+            Array.from(container.children).forEach(btn => btn.classList.remove('active'));
+            const index = categoryFilters[catKey].findIndex(f => f.id === filterId);
+            container.children[index].classList.add('active');
             refreshDropdowns();
         }
 
@@ -388,6 +429,22 @@
                     }
                     if (cat.key === 'ram' && mobo && mobo.id !== 'none' && item.id !== 'none') {
                         if (item.type !== mobo.ramType) isCompatible = false;
+                    }
+
+                    // Check manual filters
+                    const manualFilter = filterState[cat.key];
+                    if (manualFilter && manualFilter !== 'all') {
+                        if (cat.key === 'cpu' || cat.key === 'mobo') {
+                            if (item.socket && item.socket.toLowerCase() !== manualFilter) isCompatible = false;
+                        } else if (cat.key === 'ram') {
+                            if (item.type && item.type.toLowerCase() !== manualFilter) isCompatible = false;
+                        } else if (cat.key === 'storage' || cat.key === 'psu' || cat.key === 'cooling' || cat.key === 'gpu') {
+                            if (cat.key === 'cooling' && manualFilter === 'air') {
+                                if (item.name.toLowerCase().includes('mm')) isCompatible = false;
+                            } else {
+                                if (!item.name.toLowerCase().includes(manualFilter)) isCompatible = false;
+                            }
+                        }
                     }
 
                     if (isCompatible || item.id === 'none') {
