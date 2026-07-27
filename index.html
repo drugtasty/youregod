@@ -750,33 +750,30 @@
         let selectorBrands = [];
 
         function getComponentImage(item, catKey) {
-            // First check if DB explicitly has an image
             if (item.img) return item.img;
             
             const n = item.name.toLowerCase();
             
-            // Map keywords to real Wikimedia Commons product images
-            if (n.includes('amd ryzen')) return 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/AMD_Ryzen_5_2600.jpg/800px-AMD_Ryzen_5_2600.jpg';
-            if (n.includes('intel core')) return 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Intel_Core_i9-10900K.jpg/800px-Intel_Core_i9-10900K.jpg';
-            if (n.includes('rtx')) return 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Nvidia_GeForce_RTX_3080_Founders_Edition.jpg/800px-Nvidia_GeForce_RTX_3080_Founders_Edition.jpg';
-            if (n.includes('radeon')) return 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/AMD_Radeon_RX_6800_XT.jpg/800px-AMD_Radeon_RX_6800_XT.jpg';
+            if (n.includes('amd ryzen')) return 'https://loremflickr.com/400/400/amd,ryzen,cpu/all';
+            if (n.includes('intel core')) return 'https://loremflickr.com/400/400/intel,cpu,processor/all';
+            if (n.includes('rtx')) return 'https://loremflickr.com/400/400/nvidia,rtx,gpu/all';
+            if (n.includes('radeon')) return 'https://loremflickr.com/400/400/amd,radeon,gpu/all';
             
             if (catKey === 'mobo') {
-                if (n.includes('asus')) return 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Asus_Prime_X299-A_motherboard.jpg/800px-Asus_Prime_X299-A_motherboard.jpg';
-                if (n.includes('msi') || n.includes('gigabyte')) return 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Gigabyte_GA-Z170X-Gaming_7.jpg/800px-Gigabyte_GA-Z170X-Gaming_7.jpg';
-                return 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Motherboard_Layout.svg/800px-Motherboard_Layout.svg.png';
+                if (n.includes('asus')) return 'https://loremflickr.com/400/400/asus,motherboard/all';
+                if (n.includes('msi') || n.includes('gigabyte')) return 'https://loremflickr.com/400/400/msi,motherboard/all';
+                return 'https://loremflickr.com/400/400/computer,motherboard/all';
             }
             
-            if (catKey === 'ram') return 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Corsair_Vengeance_LPX_DDR4_RAM.jpg/800px-Corsair_Vengeance_LPX_DDR4_RAM.jpg';
-            if (catKey === 'storage') return 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Samsung_970_EVO_Plus_NVMe_M.2_SSD.jpg/800px-Samsung_970_EVO_Plus_NVMe_M.2_SSD.jpg';
-            if (catKey === 'psu') return 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/ATX_Power_Supply.jpg/800px-ATX_Power_Supply.jpg';
-            if (catKey === 'case') return 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Computer_case_open.jpg/800px-Computer_case_open.jpg';
+            if (catKey === 'ram') return 'https://loremflickr.com/400/400/corsair,ram,memory/all';
+            if (catKey === 'storage') return 'https://loremflickr.com/400/400/ssd,nvme,storage/all';
+            if (catKey === 'psu') return 'https://loremflickr.com/400/400/computer,psu,power/all';
+            if (catKey === 'case') return 'https://loremflickr.com/400/400/computer,case,pc/all';
             if (catKey === 'cooling') {
-                if (n.includes('noctua') || n.includes('thermalright') || n.includes('deepcool')) return 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Noctua_NH-D15.jpg/800px-Noctua_NH-D15.jpg';
-                return 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Corsair_H100i_v2.jpg/800px-Corsair_H100i_v2.jpg'; // Default to AIO
+                if (n.includes('noctua') || n.includes('thermalright') || n.includes('deepcool')) return 'https://loremflickr.com/400/400/noctua,cooler,cpu/all';
+                return 'https://loremflickr.com/400/400/corsair,aio,cooler/all';
             }
             
-            // Fallback default icon behavior if no real image
             const icons = {
                 cpu: '⚙️', gpu: '🎮', mobo: '🖥️', ram: '🎫', storage: '💾', cooling: '❄️', psu: '⚡', case: '📦', fans: '🌀', accessories: '🛠️', monitor: '📺'
             };
@@ -1316,35 +1313,47 @@
             }
         }
 
-        let radarChart;
+        let radarChart = null;
         function initChart() {
-            const ctx = document.getElementById('balanceChart').getContext('2d');
-            radarChart = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: ['Gaming (GPU)', 'Compute (CPU)', 'Memory', 'Efficiency', 'Value'],
-                    datasets: [{
-                        label: 'System Score',
-                        data: [0, 0, 0, 0, 0],
-                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                        borderColor: '#10b981',
-                        pointBackgroundColor: '#10b981',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    scales: { 
-                        r: { 
-                            angleLines: { color: 'rgba(255,255,255,0.1)' }, 
-                            grid: { color: 'rgba(255,255,255,0.1)' }, 
-                            pointLabels: { color: '#888', font: { family: 'JetBrains Mono', size: 10 } }, 
-                            ticks: { display: false, max: 100, min: 0 } 
-                        } 
+            try {
+                if (typeof Chart === 'undefined') return;
+                const ctx = document.getElementById('balanceChart').getContext('2d');
+                Chart.defaults.color = '#888';
+                Chart.defaults.font.family = "'Inter', sans-serif";
+                
+                radarChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Gaming (GPU)', 'Work (CPU)', 'Memory', 'Efficiency', 'Value'],
+                        datasets: [{
+                            label: 'System Balance',
+                            data: [0, 0, 0, 0, 0],
+                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                            borderColor: '#fff',
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#000',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#fff',
+                            borderWidth: 2,
+                        }]
                     },
-                    plugins: { legend: { display: false } },
-                    maintainAspectRatio: false
-                }
-            });
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                pointLabels: { color: '#ccc', font: { size: 10 } },
+                                ticks: { display: false, min: 0, max: 100 }
+                            }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            } catch (e) {
+                console.error("Chart initialization failed", e);
+            }
         }
 
         function updateChart() {
