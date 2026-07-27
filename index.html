@@ -138,6 +138,31 @@
         .rgb-rainbow { animation: rgb-wave 4s linear infinite; }
         .rgb-breathe { animation: breathe 3s ease-in-out infinite; }
 
+        /* Custom Part Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal {
+            background: var(--bg-panel); border: 1px solid var(--accent);
+            border-radius: 12px; padding: 24px; width: 400px;
+            box-shadow: 0 0 40px var(--accent-glow);
+        }
+        .modal input {
+            width: 100%; background: #000; border: 1px solid var(--border-color);
+            color: #fff; padding: 10px; margin-top: 5px; margin-bottom: 15px;
+            border-radius: 4px; font-family: 'JetBrains Mono', monospace; box-sizing: border-box;
+        }
+
+        /* Build Checklist */
+        .checklist-item {
+            display: flex; justify-content: space-between; font-size: 0.8rem;
+            margin-bottom: 6px; padding: 6px; background: rgba(0,0,0,0.3); border-radius: 4px;
+        }
+        .checklist-item.done { color: var(--accent); }
+        .checklist-item.missing { color: var(--warning); border-left: 2px solid var(--warning); }
+
         /* Stats */
         .stat-block { padding: 20px; border-bottom: 1px solid var(--border-color); }
         .stat-block:last-child { border-bottom: none; }
@@ -184,6 +209,23 @@
     </style>
 </head>
 <body>
+
+    <!-- Custom Part Injector Modal -->
+    <div class="modal-overlay" id="custom-modal">
+        <div class="modal">
+            <h2 style="margin-top: 0; color: var(--accent);">Inject Custom Part</h2>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">Enter the details of your custom component. It will be injected directly into the database.</p>
+            <input type="hidden" id="custom-cat">
+            <label style="font-size: 0.75rem; text-transform: uppercase;">Part Name:</label>
+            <input type="text" id="custom-name" placeholder="e.g. Custom Water Loop">
+            <label style="font-size: 0.75rem; text-transform: uppercase;">Price ($):</label>
+            <input type="number" id="custom-price" placeholder="e.g. 500">
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="buy-btn" style="flex: 1; background: #333; color: #fff;" onclick="document.getElementById('custom-modal').style.display='none'">CANCEL</button>
+                <button class="buy-btn" style="flex: 1; background: var(--accent);" onclick="injectCustomPart()">INJECT PART</button>
+            </div>
+        </div>
+    </div>
 
     <div class="app-container">
         <!-- Navigation -->
@@ -250,6 +292,11 @@
                     <div style="position: relative; height: 220px; width: 100%; margin-top: 10px;">
                         <canvas id="balanceChart"></canvas>
                     </div>
+                </div>
+
+                <div class="stat-block">
+                    <div class="stat-label" style="margin-bottom: 10px;">Build Readiness Checklist</div>
+                    <div id="build-checklist"></div>
                 </div>
 
                 <div class="stat-block">
@@ -350,7 +397,9 @@
             { key: 'cpu', label: 'CPU' }, { key: 'gpu', label: 'Graphics Card' },
             { key: 'mobo', label: 'Motherboard' }, { key: 'ram', label: 'Memory' },
             { key: 'storage', label: 'Storage' }, { key: 'cooling', label: 'CPU Cooler' },
-            { key: 'psu', label: 'Power Supply' }, { key: 'case', label: 'Chassis' }
+            { key: 'psu', label: 'Power Supply' }, { key: 'case', label: 'Chassis' },
+            { key: 'fans', label: 'Case Fans' }, { key: 'accessories', label: 'Accessories' },
+            { key: 'monitor', label: 'Monitor' }
         ];
 
         const categoryFilters = {
@@ -360,7 +409,8 @@
             ram: [{id:'all', label:'ALL'}, {id:'ddr5', label:'DDR5'}, {id:'ddr4', label:'DDR4'}],
             storage: [{id:'all', label:'ALL'}, {id:'4tb', label:'4TB'}, {id:'2tb', label:'2TB'}, {id:'1tb', label:'1TB'}],
             psu: [{id:'all', label:'ALL'}, {id:'1000', label:'1000W+'}, {id:'850', label:'850W'}, {id:'750', label:'750W'}],
-            cooling: [{id:'all', label:'ALL'}, {id:'360', label:'360mm'}, {id:'240', label:'240mm'}, {id:'air', label:'Air'}]
+            cooling: [{id:'all', label:'ALL'}, {id:'360', label:'360mm'}, {id:'240', label:'240mm'}, {id:'air', label:'Air'}],
+            fans: [{id:'all', label:'ALL'}], accessories: [{id:'all', label:'ALL'}], monitor: [{id:'all', label:'ALL'}]
         };
 
         // --- 2. State & Preset Management ---
@@ -438,7 +488,10 @@
                     <div class="part-item">
                         <div class="part-header">
                             <div class="part-category">${cat.label}</div>
-                            <div class="part-price" id="price-${cat.key}">$0</div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <button class="filter-btn" style="border-color: var(--accent); color: var(--accent);" onclick="openCustomModal('${cat.key}')">+ CUSTOM</button>
+                                <div class="part-price" id="price-${cat.key}">$0</div>
+                            </div>
                         </div>
                         ${filterHTML}
                         <div style="display: flex; gap: 8px;">
@@ -450,6 +503,30 @@
                 container.insertAdjacentHTML('beforeend', html);
             });
             refreshDropdowns();
+        }
+
+        function openCustomModal(catKey) {
+            document.getElementById('custom-cat').value = catKey;
+            document.getElementById('custom-name').value = '';
+            document.getElementById('custom-price').value = '';
+            document.getElementById('custom-modal').style.display = 'flex';
+        }
+
+        function injectCustomPart() {
+            const catKey = document.getElementById('custom-cat').value;
+            const name = document.getElementById('custom-name').value;
+            const price = parseInt(document.getElementById('custom-price').value) || 0;
+            
+            if (name.trim() === '') return alert("Please enter a name!");
+            
+            const newId = `custom_${Date.now()}`;
+            const newItem = { id: newId, name: `[CUSTOM] ${name}`, price: price, score: 0 };
+            
+            db[catKey].push(newItem);
+            state[catKey] = newId;
+            
+            document.getElementById('custom-modal').style.display = 'none';
+            initUI(); 
         }
 
         function setFilter(catKey, filterId) {
@@ -693,6 +770,18 @@
             const wattagePercent = psuWatts > 0 ? Math.min((tdp / psuWatts) * 100, 100) : 0;
             document.getElementById('wattage-bar').style.width = `${wattagePercent}%`;
             document.getElementById('wattage-bar').style.backgroundColor = wattagePercent > 90 ? 'var(--danger)' : '#3b82f6';
+
+            // Build Checklist Update
+            let checklistHTML = '';
+            categories.forEach(cat => {
+                const item = db[cat.key].find(i => i.id === state[cat.key]) || dummyItem;
+                if (item.id === 'none') {
+                    checklistHTML += `<div class="checklist-item missing"><span>${cat.label}</span><span>Required</span></div>`;
+                } else {
+                    checklistHTML += `<div class="checklist-item done"><span>${cat.label}</span><span>Installed (✓)</span></div>`;
+                }
+            });
+            document.getElementById('build-checklist').innerHTML = checklistHTML;
 
             // Bottleneck Calculation
             let bottleneckText = "0% Bottleneck";

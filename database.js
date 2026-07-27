@@ -255,6 +255,29 @@ const db = {
         { id: 'case_q300l', name: 'Cooler Master MasterBox Q300L', price: 40 },
         { id: 'case_nr200', name: 'Cooler Master NR200 (ITX)', price: 90 },
         { id: 'case_terra', name: 'Fractal Design Terra (ITX)', price: 180 }
+    ],
+    fans: [
+        { id: 'fan_lianli_uni', name: 'Lian Li UNI FAN SL-INFINITY 120 (3-Pack)', price: 90 },
+        { id: 'fan_corsair_ql', name: 'Corsair iCUE QL120 RGB (3-Pack)', price: 120 },
+        { id: 'fan_noctua_a12', name: 'Noctua NF-A12x25 PWM (Brown)', price: 30 },
+        { id: 'fan_noctua_chromax', name: 'Noctua NF-A12x25 Chromax Black', price: 35 },
+        { id: 'fan_arctic_p12', name: 'ARCTIC P12 PWM PST (5-Pack)', price: 35 },
+        { id: 'fan_nzxt_aer', name: 'NZXT F120 RGB (Triple Pack)', price: 80 }
+    ],
+    accessories: [
+        { id: 'acc_strimer', name: 'Lian Li Strimer Plus V2 24-Pin RGB Cable', price: 60 },
+        { id: 'acc_kryonaut', name: 'Thermal Grizzly Kryonaut Thermal Paste', price: 10 },
+        { id: 'acc_vertical_gpu', name: 'Cooler Master Vertical GPU Mount V3', price: 65 },
+        { id: 'acc_corsair_commander', name: 'Corsair iCUE Commander Core XT', price: 55 },
+        { id: 'acc_contact_frame', name: 'Thermalright CPU Contact Frame', price: 15 }
+    ],
+    monitor: [
+        { id: 'mon_aw3225qf', name: 'Alienware 32" 4K QD-OLED 240Hz (AW3225QF)', price: 1199 },
+        { id: 'mon_pg27aqdm', name: 'ASUS ROG Swift 27" 1440p OLED 240Hz', price: 899 },
+        { id: 'mon_g7', name: 'Samsung Odyssey G7 27" 1440p 240Hz', price: 550 },
+        { id: 'mon_lg27', name: 'LG 27GP850-B 27" 1440p 165Hz IPS', price: 300 },
+        { id: 'mon_zowie', name: 'BenQ ZOWIE XL2566K 24.5" 1080p 360Hz', price: 599 },
+        { id: 'mon_budget', name: 'AOC 24G2 24" 1080p 144Hz IPS', price: 130 }
     ]
 };
 
