@@ -360,6 +360,18 @@
             { key: 'psu', label: 'Power Supply' }, { key: 'case', label: 'Chassis' }
         ];
 
+        // Auto-Sort all database categories by Performance (Score) or Price
+        Object.keys(db).forEach(catKey => {
+            const items = db[catKey].filter(i => i.id !== 'none');
+            items.sort((a, b) => {
+                const scoreA = a.score || 0;
+                const scoreB = b.score || 0;
+                if (scoreA !== scoreB) return scoreB - scoreA; // Sort by score descending
+                return b.price - a.price; // Fallback: Sort by price descending
+            });
+            db[catKey] = [dummyItem, ...items];
+        });
+
         // --- 2. State & Preset Management ---
         let state = {};
         categories.forEach(cat => state[cat.key] = 'none');
