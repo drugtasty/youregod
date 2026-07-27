@@ -243,6 +243,11 @@
                 <div class="ai-panel" id="ai-panel">
                     <strong>AI ASSISTANT</strong>
                     <span id="ai-text">Please select components to generate a build analysis.</span>
+                    
+                    <div style="margin-top: 15px; display: flex; gap: 8px;">
+                        <input type="text" id="ai-prompt" placeholder='e.g. "Build me a $1500 Intel PC"' style="flex: 1; padding: 8px; border: 1px solid var(--border-color); background: #000; color: #fff; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 0.8rem;" onkeypress="if(event.key === 'Enter') handleAIPrompt()">
+                        <button class="buy-btn" style="background-color: var(--accent); color: #000;" onclick="handleAIPrompt()">ASK AI</button>
+                    </div>
                 </div>
 
             </div>
@@ -634,6 +639,59 @@
             }
 
             runAIAssistant(missingCount, gpuScore, cpuScore, totalPrice, psuPrice);
+        }
+
+        function handleAIPrompt() {
+            const prompt = document.getElementById('ai-prompt').value.toLowerCase();
+            if (!prompt) return;
+
+            // NLP Parsing
+            let budget = 0;
+            const match = prompt.match(/(?:budget|for)?\s?\$?([0-9,]+)/);
+            if (match) budget = parseInt(match[1].replace(/,/g, ''));
+            if (budget < 300 && prompt.includes('budget')) budget = 600;
+            if (budget === 0) {
+                aiInterventionMessage = "AI: I couldn't detect a specific budget in your prompt. Please include a dollar amount (e.g. '$1500').";
+                updateTelemetry();
+                return;
+            }
+            if (budget < 400) budget = 400; // Set minimum viable floor
+
+            const preferIntel = prompt.includes('intel');
+            const preferAMD = prompt.includes('amd') || prompt.includes('ryzen') || prompt.includes('radeon');
+            const preferNvidia = prompt.includes('nvidia') || prompt.includes('rtx') || prompt.includes('geforce');
+
+            // Picker logic
+            const pickPart = (category, maxPrice, condition = () => true) => {
+                return db[category].find(i => i.id !== 'none' && i.price <= maxPrice && condition(i)) 
+                       || db[category].filter(i => i.id !== 'none' && condition(i)).pop() 
+                       || db[category].find(i => i.id !== 'none'); 
+            };
+
+            const gpu = pickPart('gpu', budget * 0.45, i => preferNvidia ? i.name.includes('NVIDIA') : true);
+            const cpu = pickPart('cpu', budget * 0.25, i => {
+                if (preferIntel) return i.name.includes('Intel');
+                if (preferAMD) return i.name.includes('AMD');
+                return true;
+            });
+            const mobo = pickPart('mobo', budget * 0.15, i => i.socket === cpu.socket);
+            const ram = pickPart('ram', budget * 0.10, i => i.type === mobo.ramType);
+            const storage = pickPart('storage', budget * 0.10);
+            const cooling = pickPart('cooling', budget * 0.08);
+            const psu = pickPart('psu', budget * 0.12);
+            const chassis = pickPart('case', budget * 0.10);
+
+            // Apply State
+            state.cpu = cpu.id; state.gpu = gpu.id; state.mobo = mobo.id; state.ram = ram.id;
+            state.storage = storage.id; state.cooling = cooling.id; state.psu = psu.id; state.case = chassis.id;
+
+            // Trigger UI Refresh
+            refreshDropdowns();
+            categories.forEach(cat => { document.getElementById(`select-${cat.key}`).value = state[cat.key]; });
+            
+            aiInterventionMessage = `AI AUTO-BUILDER: Assembled the optimal PC for your $${budget.toLocaleString()} budget. Enjoy!`;
+            updateTelemetry();
+            document.getElementById('ai-prompt').value = '';
         }
 
         // --- 6. Compare View Rendering ---
