@@ -189,7 +189,7 @@
         <!-- Navigation -->
         <nav class="top-nav">
             <button class="nav-btn active" onclick="toggleView('builder')" id="btn-builder">🛠️ BUILDER</button>
-            <button class="nav-btn" onclick="toggleView('compare')" id="btn-compare">📊 COMPARE PRESETS (PtP)</button>
+            <button class="nav-btn" onclick="toggleView('compare')" id="btn-compare">📊 COMPARE PRESETS</button>
         </nav>
 
         <header>
@@ -904,7 +904,7 @@
             radarChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
-                    labels: ['Gaming (GPU)', 'Compute (CPU)', 'Memory', 'Efficiency', 'Value (PtP)'],
+                    labels: ['Gaming (GPU)', 'Compute (CPU)', 'Memory', 'Efficiency', 'Value'],
                     datasets: [{
                         label: 'System Score',
                         data: [0, 0, 0, 0, 0],
