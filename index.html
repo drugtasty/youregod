@@ -150,47 +150,76 @@
         // --- 1. Database ---
         const db = {
             cpu: [
-                { id: 'c1', name: 'AMD Ryzen 7 9800X3D', price: 440, score: 17000 },
-                { id: 'c2', name: 'AMD Ryzen 7 7800X3D', price: 350, score: 13500 },
-                { id: 'c3', name: 'Intel Core i9-14900K', price: 550, score: 21000 },
-                { id: 'c4', name: 'Intel Core i5-13600K', price: 280, score: 16500 }
+                { id: 'c_9950x', name: 'AMD Ryzen 9 9950X', price: 650, score: 24000 },
+                { id: 'c_7950x3d', name: 'AMD Ryzen 9 7950X3D', price: 600, score: 23500 },
+                { id: 'c_9800x3d', name: 'AMD Ryzen 7 9800X3D', price: 440, score: 17000 },
+                { id: 'c_7800x3d', name: 'AMD Ryzen 7 7800X3D', price: 350, score: 13500 },
+                { id: 'c_7600x', name: 'AMD Ryzen 5 7600X', price: 200, score: 10500 },
+                { id: 'c_14900k', name: 'Intel Core i9-14900K', price: 550, score: 21000 },
+                { id: 'c_14700k', name: 'Intel Core i7-14700K', price: 400, score: 19000 },
+                { id: 'c_14600k', name: 'Intel Core i5-14600K', price: 300, score: 17500 }
             ],
             gpu: [
-                { id: 'g1', name: 'NVIDIA RTX 5090 32GB', price: 1999, score: 41000 },
-                { id: 'g2', name: 'NVIDIA RTX 5080 16GB', price: 1199, score: 29500 },
-                { id: 'g3', name: 'NVIDIA RTX 4090 24GB', price: 1799, score: 36000 },
-                { id: 'g4', name: 'NVIDIA RTX 4080 Super', price: 999, score: 28000 },
-                { id: 'g5', name: 'AMD Radeon RX 7900 XTX', price: 899, score: 29000 }
+                { id: 'g_5090', name: 'NVIDIA RTX 5090 32GB', price: 1999, score: 41000 },
+                { id: 'g_5080', name: 'NVIDIA RTX 5080 16GB', price: 1199, score: 29500 },
+                { id: 'g_5070', name: 'NVIDIA RTX 5070 12GB', price: 599, score: 21000 },
+                { id: 'g_4090', name: 'NVIDIA RTX 4090 24GB', price: 1799, score: 36000 },
+                { id: 'g_4080s', name: 'NVIDIA RTX 4080 Super', price: 999, score: 28000 },
+                { id: 'g_4070tis', name: 'NVIDIA RTX 4070 Ti Super', price: 799, score: 24500 },
+                { id: 'g_4070s', name: 'NVIDIA RTX 4070 Super', price: 599, score: 21000 },
+                { id: 'g_7900xtx', name: 'AMD Radeon RX 7900 XTX', price: 899, score: 29000 },
+                { id: 'g_7900xt', name: 'AMD Radeon RX 7900 XT', price: 699, score: 25500 },
+                { id: 'g_7800xt', name: 'AMD Radeon RX 7800 XT', price: 499, score: 19000 }
             ],
             mobo: [
-                { id: 'm1', name: 'MSI X870 MAG TOMAHAWK WIFI', price: 230 },
-                { id: 'm2', name: 'ASUS ROG STRIX X870E-E GAMING', price: 400 },
-                { id: 'm3', name: 'Gigabyte B650 AORUS ELITE', price: 180 }
+                { id: 'm_godlike', name: 'MSI MEG X870E GODLIKE', price: 1200 },
+                { id: 'm_hero', name: 'ASUS ROG CROSSHAIR X870E HERO', price: 700 },
+                { id: 'm_tomax870', name: 'MSI X870 MAG TOMAHAWK WIFI', price: 230 },
+                { id: 'm_strixx870a', name: 'ASUS ROG STRIX X870-A GAMING', price: 350 },
+                { id: 'm_aorusb650', name: 'Gigabyte B650 AORUS ELITE AX', price: 180 },
+                { id: 'm_taichi', name: 'ASRock B650E Taichi', price: 280 },
+                { id: 'm_darkhero', name: 'ASUS ROG MAXIMUS Z790 DARK HERO', price: 700 },
+                { id: 'm_tomaz790', name: 'MSI MAG Z790 TOMAHAWK WIFI', price: 240 }
             ],
             ram: [
-                { id: 'r1', name: '32GB DDR5-6000 CL30', price: 115 },
-                { id: 'r2', name: '64GB DDR5-6000 CL30', price: 210 },
-                { id: 'r3', name: '32GB DDR5-7200 CL34', price: 140 }
+                { id: 'r_32_6000', name: '32GB (2x16GB) DDR5-6000 CL30', price: 115 },
+                { id: 'r_64_6000', name: '64GB (2x32GB) DDR5-6000 CL30', price: 210 },
+                { id: 'r_96_6400', name: '96GB (2x48GB) DDR5-6400 CL32', price: 350 },
+                { id: 'r_32_7200', name: '32GB (2x16GB) DDR5-7200 CL34', price: 140 },
+                { id: 'r_48_8000', name: '48GB (2x24GB) DDR5-8000 CL38', price: 250 }
             ],
             storage: [
-                { id: 's1', name: 'Samsung 990 Pro 2TB NVMe', price: 170 },
-                { id: 's2', name: 'Samsung 990 Pro 4TB NVMe', price: 320 },
-                { id: 's3', name: 'Crucial P3 Plus 2TB NVMe', price: 110 }
+                { id: 's_990_1tb', name: 'Samsung 990 Pro 1TB NVMe', price: 110 },
+                { id: 's_990_2tb', name: 'Samsung 990 Pro 2TB NVMe', price: 170 },
+                { id: 's_990_4tb', name: 'Samsung 990 Pro 4TB NVMe', price: 320 },
+                { id: 's_t705_2tb', name: 'Crucial T705 2TB Gen5 NVMe', price: 260 },
+                { id: 's_sn850x_2tb', name: 'WD Black SN850X 2TB NVMe', price: 150 },
+                { id: 's_p3_2tb', name: 'Crucial P3 Plus 2TB NVMe', price: 110 }
             ],
             cooling: [
-                { id: 'cool1', name: 'TRYX PANORAMA SE 360mm', price: 250 },
-                { id: 'cool2', name: 'NZXT Kraken Elite 360', price: 280 },
-                { id: 'cool3', name: 'Thermalright Peerless Assassin', price: 35 }
+                { id: 'cool_tryx', name: 'TRYX PANORAMA SE 360mm', price: 250 },
+                { id: 'cool_kraken', name: 'NZXT Kraken Elite 360', price: 280 },
+                { id: 'cool_galahad', name: 'Lian Li Galahad II LCD 360', price: 230 },
+                { id: 'cool_arctic', name: 'Arctic Liquid Freezer III 360', price: 120 },
+                { id: 'cool_peerless', name: 'Thermalright Peerless Assassin 120', price: 35 },
+                { id: 'cool_noctua', name: 'Noctua NH-D15 G2', price: 150 }
             ],
             psu: [
-                { id: 'p1', name: 'Corsair RM1000e (2025)', price: 145 },
-                { id: 'p2', name: 'Corsair RM850e', price: 120 },
-                { id: 'p3', name: 'SeaSonic VERTEX 1200W', price: 220 }
+                { id: 'p_1600i', name: 'Corsair AX1600i', price: 600 },
+                { id: 'p_1300tx', name: 'SeaSonic PRIME TX-1300', price: 450 },
+                { id: 'p_1200shift', name: 'Corsair RM1200x SHIFT', price: 220 },
+                { id: 'p_1000e', name: 'Corsair RM1000e (2025)', price: 145 },
+                { id: 'p_850e', name: 'Corsair RM850e', price: 120 },
+                { id: 'p_850g', name: 'MSI MPG A850G', price: 115 }
             ],
             case: [
-                { id: 'case1', name: 'Lian Li O11 Dynamic EVO RGB', price: 160 },
-                { id: 'case2', name: 'NZXT H9 Flow', price: 160 },
-                { id: 'case3', name: 'Corsair 4000D Airflow', price: 90 }
+                { id: 'case_evo', name: 'Lian Li O11 Dynamic EVO RGB', price: 160 },
+                { id: 'case_vision', name: 'Lian Li O11 Vision', price: 140 },
+                { id: 'case_h9', name: 'NZXT H9 Flow', price: 160 },
+                { id: 'case_h6', name: 'NZXT H6 Flow', price: 110 },
+                { id: 'case_4000d', name: 'Corsair 4000D Airflow', price: 90 },
+                { id: 'case_north', name: 'Fractal Design North', price: 140 },
+                { id: 'case_nv7', name: 'Phanteks NV7', price: 200 }
             ]
         };
 
