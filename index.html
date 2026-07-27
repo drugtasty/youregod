@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ULTIMATE BUILD // 2026 // 3D VIEWER</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #000000;
+            --bg-panel: #070707;
+            --bg-hover: #0a0a0a;
+            --border-color: #1a1a1a;
+            --border-hover: #333333;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --accent: #ffffff;
+            --accent-glow: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding-top: 40px;
+            padding-bottom: 40px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 20px;
+        }
+
+        header {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 5px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .header-title p {
+            color: var(--text-secondary);
+            margin: 0;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ef4444; /* Red neon for 3D engine status */
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        /* 3-Column Layout */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 24px;
+            height: 600px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        /* 3D Canvas Area */
+        .canvas-container {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+        
+        #three-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            pointer-events: none;
+        }
+
+        .canvas-overlay h2 {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .canvas-instruction {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* Panels (Parts & Stats) */
+        .panel {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            position: sticky;
+            top: 0;
+            background: var(--bg-panel);
+            z-index: 10;
+        }
+
+        .part-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .part-item:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .part-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .part-category {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+        }
+
+        .part-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Stats Panel */
+        .stat-block {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+        
+        .stat-value span.sub {
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: normal;
+        }
+        
+        .progress-track {
+            width: 100%;
+            height: 4px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #ef4444; /* Neon red */
+            width: 100%;
+        }
+
+        .comparison-table {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .comparison-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .comparison-row .c-label { color: var(--text-secondary); }
+        .comparison-row .c-value { color: var(--text-primary); }
+        
+        .comparison-row.active .c-label, 
+        .comparison-row.active .c-value { 
+            color: #ef4444; 
+            font-weight: 700; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <div class="header-title">
+                <h1>Ultimate Build</h1>
+                <p>Config.v1 // Max Performance // 3D Render</p>
+            </div>
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                ENGINE ACTIVE
+            </div>
+        </header>
+
+        <div class="grid-layout">
+            <!-- Left Panel: Parts List -->
+            <div class="panel">
+                <div class="panel-header">Components</div>
+                <div class="part-list" id="parts-container">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Middle Panel: 3D Viewer -->
+            <div class="canvas-container" id="canvas-container">
+                <div class="canvas-overlay">
+                    <h2>WebGL Hologram</h2>
+                </div>
+                <div class="canvas-instruction">
+                    [ CLICK & DRAG TO ROTATE // SCROLL TO ZOOM ]
+                </div>
+                <!-- ThreeJS renders here -->
+            </div>
+
+            <!-- Right Panel: Stats -->
+            <div class="panel">
+                <div class="panel-header">Telemetry</div>
+                <div class="stat-block">
+                    <div class="stat-label">Total Est. Cost</div>
+                    <div class="stat-value" id="total-price">$0</div>
+                    <div class="progress-track">
+                        <div class="progress-fill"></div>
+                    </div>
+                </div>
+
+                <div class="stat-block" style="border-bottom: none;">
+                    <div class="stat-label">3DMark Estimate</div>
+                    <div class="stat-value" style="color: #ef4444;">36,500 <span class="sub" style="color: var(--text-secondary);">Time Spy</span></div>
+                    <div class="comparison-table">
+                        <div class="comparison-row active">
+                            <span class="c-label">RTX 5090 (Yours)</span>
+                            <span class="c-value">36,500+</span>
+                        </div>
+                        <div class="comparison-row">
+                            <span class="c-label">RTX 4090</span>
+                            <span class="c-value">33,000</span>
+                        </div>
+                        <div class="comparison-row">
+                            <span class="c-label">RTX 5080</span>
+                            <span class="c-value">27,790</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inject Three.js and OrbitControls via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // --- 1. Populate Parts List ---
+        const parts = [
+            { category: 'CPU', name: 'AMD Ryzen 7 9800X3D', price: 440 },
+            { category: 'GPU', name: 'NVIDIA RTX 5090 32GB', price: 1999 },
+            { category: 'MOBO', name: 'MSI X870 MAG TOMAHAWK WIFI', price: 230 },
+            { category: 'RAM', name: '32GB DDR5-6000 CL30', price: 115 },
+            { category: 'STORAGE', name: 'Samsung 990 Pro 2TB NVMe', price: 170 },
+            { category: 'COOLING', name: 'TRYX PANORAMA SE 360mm', price: 250 },
+            { category: 'POWER', name: 'Corsair RM1000e (2025)', price: 145 },
+            { category: 'CHASSIS', name: 'Lian Li O11 Dynamic EVO RGB', price: 160 },
+            { category: 'FANS', name: 'Lian Li SL-Infinity (x6)', price: 150 }
+        ];
+
+        const container = document.getElementById('parts-container');
+        let total = 0;
+        
+        parts.forEach((part) => {
+            total += part.price;
+            const partHTML = `
+                <div class="part-item">
+                    <div class="part-info">
+                        <div class="part-category">${part.category}</div>
+                        <div class="part-name">${part.name}</div>
+                    </div>
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-secondary);">
+                        $${part.price}
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', partHTML);
+        });
+
+        document.getElementById('total-price').innerText = '$' + total.toLocaleString();
+
+        // --- 2. Three.js WebGL Engine Logic ---
+        
+        // Setup Scene, Camera, Renderer
+        const canvasContainer = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        
+        const camera = new THREE.PerspectiveCamera(45, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
+        camera.position.set(4, 3, 5); // Isometric angle
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        canvasContainer.appendChild(renderer.domElement);
+
+        // OrbitControls (Interactive rotation)
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 1.0;
+        controls.enablePan = false;
+
+        // Group to hold all PC parts
+        const pcGroup = new THREE.Group();
+        scene.add(pcGroup);
+
+        // Materials (Stylized Aesthetic)
+        const glassMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0x111111,
+            metalness: 0.9,
+            roughness: 0.1,
+            transparent: true,
+            opacity: 0.3,
+            side: THREE.DoubleSide
+        });
+
+        const frameMaterial = new THREE.LineBasicMaterial({ color: 0x333333, linewidth: 2 });
+        
+        const gpuMaterial = new THREE.MeshStandardMaterial({
+            color: 0x111111,
+            emissive: 0xef4444,
+            emissiveIntensity: 0.5,
+            metalness: 0.8,
+            roughness: 0.2
+        });
+
+        const fanMaterial = new THREE.MeshStandardMaterial({
+            color: 0x222222,
+            emissive: 0xff8800,
+            emissiveIntensity: 0.8,
+            metalness: 0.5
+        });
+
+        const motherboardMaterial = new THREE.MeshStandardMaterial({
+            color: 0x050505,
+            metalness: 0.8,
+            roughness: 0.8
+        });
+
+        // 1. The Case (Lian Li Representation)
+        // Main glass box
+        const caseGeometry = new THREE.BoxGeometry(2, 2.5, 3);
+        const pcCase = new THREE.Mesh(caseGeometry, glassMaterial);
+        
+        // Wireframe frame for the case edges
+        const edges = new THREE.EdgesGeometry(caseGeometry);
+        const caseFrame = new THREE.LineSegments(edges, frameMaterial);
+        
+        pcGroup.add(pcCase);
+        pcGroup.add(caseFrame);
+
+        // 2. The Motherboard (Back panel)
+        const moboGeometry = new THREE.BoxGeometry(0.1, 2.3, 2.8);
+        const mobo = new THREE.Mesh(moboGeometry, motherboardMaterial);
+        mobo.position.set(-0.9, 0, 0); // Position against the back wall
+        pcGroup.add(mobo);
+
+        // 3. The RTX 5090 GPU (Massive glowing block)
+        const gpuGeom = new THREE.BoxGeometry(0.6, 0.4, 2.2);
+        const gpu = new THREE.Mesh(gpuGeom, gpuMaterial);
+        gpu.position.set(-0.4, -0.3, 0.2); // Plugged into mobo
+        pcGroup.add(gpu);
+
+        // 4. Case Fans (Spinning glowing rings)
+        const fanGeom = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 16);
+        const fans = [];
+
+        // Bottom intake fans
+        for(let i=0; i<3; i++) {
+            const fan = new THREE.Mesh(fanGeom, fanMaterial);
+            fan.position.set(0, -1.2, -1 + i*1); // Spaced out on the bottom floor
+            pcGroup.add(fan);
+            fans.push(fan);
+        }
+
+        // Side intake fans (mounted on mobo wall)
+        for(let i=0; i<3; i++) {
+            const fan = new THREE.Mesh(fanGeom, fanMaterial);
+            fan.rotation.z = Math.PI / 2; // Face sideways
+            fan.position.set(-0.8, -0.5 + i*0.7, -0.8);
+            pcGroup.add(fan);
+            fans.push(fan);
+        }
+
+        // Top AIO Fans / Radiator
+        const radGeom = new THREE.BoxGeometry(0.8, 0.15, 2.5);
+        const radiator = new THREE.Mesh(radGeom, motherboardMaterial);
+        radiator.position.set(-0.2, 1.2, 0);
+        pcGroup.add(radiator);
+
+        // 5. Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        // Neon Red glow inside the case
+        const internalLight = new THREE.PointLight(0xef4444, 2, 5);
+        internalLight.position.set(0, 0, 0);
+        scene.add(internalLight);
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Spin the fans
+            fans.forEach(fan => {
+                fan.rotation.y += 0.05;
+            });
+
+            // Pulse the GPU emissive light slightly
+            const time = Date.now() * 0.003;
+            gpuMaterial.emissiveIntensity = 0.3 + Math.sin(time) * 0.2;
+
+            controls.update(); // required if damping or autoRotate is enabled
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resizing
+        window.addEventListener('resize', () => {
+            const width = canvasContainer.clientWidth;
+            const height = canvasContainer.clientHeight;
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>
