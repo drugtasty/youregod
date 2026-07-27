@@ -13,7 +13,7 @@
             --bg-base: #000000; --bg-panel: rgba(10, 10, 10, 0.7); --bg-hover: rgba(25, 25, 25, 0.9);
             --border-color: rgba(255, 255, 255, 0.1); --border-hover: rgba(255, 255, 255, 0.2);
             --text-primary: #ffffff; --text-secondary: #888888;
-            --accent: #10b981; --accent-glow: rgba(16, 185, 129, 0.5);
+            --accent: #ffffff; --accent-glow: rgba(255, 255, 255, 0.5);
             --danger: #ef4444; --warning: #f59e0b;
         }
 
@@ -183,7 +183,7 @@
 
         /* AI Assistant */
         .ai-panel {
-            background-color: rgba(16, 185, 129, 0.05); border-left: 3px solid var(--accent);
+            background-color: rgba(255, 255, 255, 0.05); border-left: 3px solid var(--accent);
             padding: 15px; margin: 20px; border-radius: 0 4px 4px 0;
             font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);
             transition: all 0.3s ease;
@@ -241,6 +241,7 @@
             </div>
             <div style="display: flex; gap: 15px; align-items: center;">
                 <div style="display: flex; gap: 6px; margin-right: 15px;">
+                    <button class="theme-btn" style="background-color: #ffffff;" onclick="setTheme('monochrome')" title="Monochrome"></button>
                     <button class="theme-btn" style="background-color: #10b981;" onclick="setTheme('nvidia')" title="Team Green"></button>
                     <button class="theme-btn" style="background-color: #ef4444;" onclick="setTheme('amd')" title="Team Red"></button>
                     <button class="theme-btn" style="background-color: #3b82f6;" onclick="setTheme('intel')" title="Team Blue"></button>
@@ -996,6 +997,7 @@
         // --- 7. New Premium Features ---
         function setTheme(theme) {
             const root = document.documentElement;
+            if (theme === 'monochrome') { root.style.setProperty('--accent', '#ffffff'); root.style.setProperty('--accent-glow', 'rgba(255, 255, 255, 0.5)'); root.style.setProperty('--bg-panel', 'rgba(10, 10, 10, 0.7)'); }
             if (theme === 'nvidia') { root.style.setProperty('--accent', '#10b981'); root.style.setProperty('--accent-glow', 'rgba(16, 185, 129, 0.5)'); root.style.setProperty('--bg-panel', 'rgba(10, 15, 10, 0.7)'); }
             if (theme === 'amd') { root.style.setProperty('--accent', '#ef4444'); root.style.setProperty('--accent-glow', 'rgba(239, 68, 68, 0.5)'); root.style.setProperty('--bg-panel', 'rgba(15, 5, 5, 0.7)'); }
             if (theme === 'intel') { root.style.setProperty('--accent', '#3b82f6'); root.style.setProperty('--accent-glow', 'rgba(59, 130, 246, 0.5)'); root.style.setProperty('--bg-panel', 'rgba(5, 10, 20, 0.7)'); }
