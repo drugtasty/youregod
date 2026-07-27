@@ -123,6 +123,21 @@
         }
         .theme-btn:hover { transform: scale(1.2); }
 
+        /* RGB Engine */
+        @keyframes rgb-wave { 
+            0% { border-color: #ff0000; box-shadow: 0 0 20px rgba(255,0,0,0.3); } 
+            33% { border-color: #00ff00; box-shadow: 0 0 20px rgba(0,255,0,0.3); } 
+            66% { border-color: #0000ff; box-shadow: 0 0 20px rgba(0,0,255,0.3); } 
+            100% { border-color: #ff0000; box-shadow: 0 0 20px rgba(255,0,0,0.3); } 
+        }
+        @keyframes breathe {
+            0% { box-shadow: 0 0 10px var(--accent-glow); }
+            50% { box-shadow: 0 0 35px var(--accent-glow); }
+            100% { box-shadow: 0 0 10px var(--accent-glow); }
+        }
+        .rgb-rainbow { animation: rgb-wave 4s linear infinite; }
+        .rgb-breathe { animation: breathe 3s ease-in-out infinite; }
+
         /* Stats */
         .stat-block { padding: 20px; border-bottom: 1px solid var(--border-color); }
         .stat-block:last-child { border-bottom: none; }
@@ -188,6 +203,12 @@
                     <button class="theme-btn" style="background-color: #ef4444;" onclick="setTheme('amd')" title="Team Red"></button>
                     <button class="theme-btn" style="background-color: #3b82f6;" onclick="setTheme('intel')" title="Team Blue"></button>
                     <button class="theme-btn" style="background-color: #fde047;" onclick="setTheme('cyberpunk')" title="Cyberpunk"></button>
+                    
+                    <div style="width: 1px; background: var(--border-color); margin: 0 5px;"></div>
+                    
+                    <button class="theme-btn" onclick="setRGB('static')" style="border-radius: 4px; width: auto; padding: 2px 8px; font-size: 0.6rem; color: #fff; border: 1px solid var(--border-color);" title="Static Lighting">STATIC</button>
+                    <button class="theme-btn" onclick="setRGB('breathe')" style="border-radius: 4px; width: auto; padding: 2px 8px; font-size: 0.6rem; color: #fff; border: 1px solid var(--border-color);" title="Breathing Effect">BREATHE</button>
+                    <button class="theme-btn" onclick="setRGB('rainbow')" style="border-radius: 4px; width: auto; padding: 2px 8px; font-size: 0.6rem; background: linear-gradient(90deg, #ff0000, #00ff00, #0000ff); border: none; color: #fff;" title="RGB Wave">RGB</button>
                 </div>
                 <button class="nav-btn" onclick="searchBenchmarks()" style="border-color: #ef4444; color: #ef4444;">▶️ BENCHMARKS</button>
                 <button class="nav-btn" onclick="shareBuild()" id="btn-share" style="border-color: var(--accent); color: var(--accent);">📋 SHARE</button>
@@ -236,6 +257,17 @@
                     <div class="stat-value" id="display-wattage" style="font-size: 1.5rem;">0W / 0W</div>
                     <div class="progress-track">
                         <div class="progress-fill" id="wattage-bar" style="background-color: #3b82f6;"></div>
+                    </div>
+                </div>
+
+                <div class="stat-block">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div class="stat-label">System Thermal Profile</div>
+                        <div class="stat-label" id="bottleneck-text" style="color: var(--danger);">0% Bottleneck</div>
+                    </div>
+                    <div class="stat-value" id="display-thermals" style="font-size: 1.5rem; color: #f97316;">35°C (Idle)</div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="thermal-bar" style="background-color: #f97316;"></div>
                     </div>
                 </div>
 
@@ -587,7 +619,7 @@
             return watts;
         }
 
-        function runAIAssistant(missingCount, gpuScore, cpuScore, totalPrice, psuPrice, tdp, psuMax) {
+        function runAIAssistant(missingCount, gpuScore, cpuScore, totalPrice, psuPrice, tdp, psuMax, temp, bnPercent) {
             const panel = document.getElementById('ai-panel');
             const text = document.getElementById('ai-text');
             panel.className = 'ai-panel'; // reset
@@ -603,6 +635,16 @@
             if (tdp > psuMax * 0.9) {
                 panel.className = 'ai-panel danger';
                 text.innerText = `CRITICAL WARNING: Your system draws ${tdp}W, which is dangerously close to your ${psuMax}W PSU limit. Under heavy load, your PC will instantly shut down. Buy a bigger Power Supply!`;
+                return;
+            }
+            if (temp > 95) {
+                panel.className = 'ai-panel danger';
+                text.innerText = `THERMAL THROTTLING: Your CPU Cooler is far too weak! Your processor will hit ${Math.floor(temp)}°C and throttle performance. Upgrade to a 240mm/360mm AIO!`;
+                return;
+            }
+            if (bnPercent > 15) {
+                panel.className = 'ai-panel warning';
+                text.innerText = `BOTTLENECK DETECTED: Your build has a ${bnPercent.toFixed(1)}% bottleneck. You are wasting money on hardware that won't be fully utilized by the other components.`;
                 return;
             }
             if (gpuScore > 30000 && cpuScore < 15000) {
@@ -652,6 +694,45 @@
             document.getElementById('wattage-bar').style.width = `${wattagePercent}%`;
             document.getElementById('wattage-bar').style.backgroundColor = wattagePercent > 90 ? 'var(--danger)' : '#3b82f6';
 
+            // Bottleneck Calculation
+            let bottleneckText = "0% Bottleneck";
+            let bottleneckPercent = 0;
+            if (gpuScore > 0 && cpuScore > 0) {
+                const idealCpuScore = gpuScore * 0.6; 
+                if (cpuScore < idealCpuScore * 0.8) {
+                    bottleneckPercent = Math.min(((idealCpuScore - cpuScore) / idealCpuScore) * 100, 100);
+                    bottleneckText = `${bottleneckPercent.toFixed(1)}% CPU Bottleneck`;
+                    document.getElementById('bottleneck-text').style.color = 'var(--danger)';
+                } else if (gpuScore < cpuScore * 0.9) {
+                    bottleneckPercent = Math.min(((cpuScore - gpuScore) / cpuScore) * 100, 100);
+                    bottleneckText = `${bottleneckPercent.toFixed(1)}% GPU Bottleneck`;
+                    document.getElementById('bottleneck-text').style.color = 'var(--warning)';
+                } else {
+                    bottleneckText = "Perfectly Balanced";
+                    document.getElementById('bottleneck-text').style.color = 'var(--accent)';
+                }
+            }
+            document.getElementById('bottleneck-text').innerText = bottleneckText;
+
+            // Thermal Simulation
+            const cooling = db.cooling.find(i => i.id === state.cooling) || dummyItem;
+            let temp = 35; // base idle
+            if (tdp > 0) {
+                let coolingPower = 100; // stock cooler
+                if (cooling.name.includes('360')) coolingPower = 380;
+                else if (cooling.name.includes('240')) coolingPower = 280;
+                else if (cooling.name.includes('NH-D15') || cooling.name.includes('Assassin')) coolingPower = 250;
+                else if (cooling.name.includes('Cooler') || cooling.name.includes('AK400')) coolingPower = 160;
+                
+                const cpuTDP = (cpuScore / 24000) * 200; // estimate max CPU draw
+                temp = 40 + ((cpuTDP / coolingPower) * 70);
+                if (temp > 100) temp = 100; 
+                if (temp < 40) temp = 40;
+            }
+            document.getElementById('display-thermals').innerText = `${Math.floor(temp)}°C (Load)`;
+            document.getElementById('thermal-bar').style.width = `${temp}%`;
+            document.getElementById('thermal-bar').style.backgroundColor = temp > 90 ? 'var(--danger)' : (temp > 75 ? 'var(--warning)' : 'var(--accent)');
+
             if(window.updateChart) updateChart();
 
             document.getElementById('display-price').innerText = '$' + totalPrice.toLocaleString();
@@ -678,7 +759,7 @@
                 document.getElementById('label-4k-rt').innerText = preset === 'low' ? 'Ray Tracing Off' : '4K Path Tracing';
             }
 
-            runAIAssistant(missingCount, gpuScore, cpuScore, totalPrice, psuPrice, tdp, psuWatts);
+            runAIAssistant(missingCount, gpuScore, cpuScore, totalPrice, psuPrice, tdp, psuWatts, temp, bottleneckPercent);
         }
 
         function shareBuild() {
@@ -795,6 +876,15 @@
             if (theme === 'intel') { root.style.setProperty('--accent', '#3b82f6'); root.style.setProperty('--accent-glow', 'rgba(59, 130, 246, 0.5)'); root.style.setProperty('--bg-panel', 'rgba(5, 10, 20, 0.7)'); }
             if (theme === 'cyberpunk') { root.style.setProperty('--accent', '#fde047'); root.style.setProperty('--accent-glow', 'rgba(253, 224, 71, 0.5)'); root.style.setProperty('--bg-panel', 'rgba(20, 10, 30, 0.8)'); }
             if(window.radarChart) updateChart();
+        }
+
+        function setRGB(mode) {
+            const panels = document.querySelectorAll('.panel');
+            panels.forEach(p => {
+                p.classList.remove('rgb-rainbow', 'rgb-breathe');
+                if (mode === 'rainbow') p.classList.add('rgb-rainbow');
+                if (mode === 'breathe') p.classList.add('rgb-breathe');
+            });
         }
 
         function searchBenchmarks() {
