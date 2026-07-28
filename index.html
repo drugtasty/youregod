@@ -400,15 +400,9 @@
         }
     
         
-            .nav-btn, .custom-select, #selector-modal, #community-feed, .filter-container { display: none !important; }
-            #view-builder { display: block !important; }
-            .part-row { background: #fff !important; border: 1px solid #ccc !important; color: #000 !important; }
-            .part-row img { filter: grayscale(100%); }
-        }
-
-        .grid-layout { display: grid; grid-template-columns: 1.5fr 1fr 2fr; gap: 24px; height: 100%; min-height: 80vh; }
+        .grid-layout { display: grid; grid-template-columns: minmax(250px, 1.2fr) minmax(200px, 1fr) minmax(400px, 2fr); gap: 15px; height: 100%; min-height: 80vh; }
         
-        @media (max-width: 1200px) { 
+        @media (max-width: 900px) { 
             .grid-layout { grid-template-columns: 1fr; height: auto; } 
             #canvas-panel { min-height: 500px; border-left: none !important; border-top: 1px solid var(--border-color); }
         }
