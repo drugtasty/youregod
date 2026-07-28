@@ -1975,6 +1975,18 @@
             document.getElementById('pd-title').innerText = item.name;
             document.getElementById('pd-price').innerText = `$${item.price.toFixed(2)}`;
             document.getElementById('pd-img').src = getComponentImage(currentSelectorCat, item.name);
+            const sketchfabIframe = document.getElementById('pd-sketchfab');
+            const imgEl = document.getElementById('pd-img');
+            
+            if (item.sketchfab_id) {
+                imgEl.style.display = 'none';
+                sketchfabIframe.style.display = 'block';
+                sketchfabIframe.src = `https://sketchfab.com/models/${item.sketchfab_id}/embed?autostart=1&ui_infos=0&ui_controls=0&ui_stop=0&transparent=1`;
+            } else {
+                imgEl.style.display = 'block';
+                sketchfabIframe.style.display = 'none';
+                sketchfabIframe.src = '';
+            }
 
             // Setup Add to build button
             document.getElementById('pd-btn-add').onclick = () => {
@@ -2187,7 +2199,8 @@
             <div class="pd-content">
                 <div class="pd-left">
                     <div class="pd-image-box">
-                        <img id="pd-img" src="" alt="Component">
+                        <img id="pd-img" src="" alt="Component" style="width: 100%; height: 100%; object-fit: contain;">
+                        <iframe id="pd-sketchfab" src="" style="display: none; width: 100%; height: 350px; border: 0;" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
                     </div>
                     <div style="font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 10px;">GENERAL SPECIFICATIONS</div>
                     <div class="pd-specs-table" id="pd-specs">
