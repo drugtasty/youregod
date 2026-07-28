@@ -634,12 +634,16 @@
     <script>
         // --- 1. Database Variables (Loaded from database.js) ---
         const categories = [
-            { key: 'cpu', label: 'CPU' }, { key: 'gpu', label: 'Graphics Card' },
-            { key: 'mobo', label: 'Motherboard' }, { key: 'ram', label: 'Memory' },
-            { key: 'storage', label: 'Storage' }, { key: 'cooling', label: 'CPU Cooler' },
-            { key: 'psu', label: 'Power Supply' }, { key: 'case', label: 'Case' },
-            { key: 'fans', label: 'Case Fans' }, { key: 'accessories', label: 'Accessories' },
-            { key: 'monitor', label: 'Monitor' }
+            { key: 'cpu', label: 'Processor' },
+            { key: 'cooler', label: 'CPU Cooler' },
+            { key: 'mobo', label: 'Motherboard' },
+            { key: 'ram', label: 'Memory' },
+            { key: 'storage', label: 'Storage' },
+            { key: 'gpu', label: 'Graphics Card' },
+            { key: 'case', label: 'Case' },
+            { key: 'psu', label: 'Power Supply' },
+            { key: 'monitor', label: 'Monitor' },
+            { key: 'os', label: 'Operating System' }
         ];
 
         const categoryFilters = {
@@ -648,6 +652,10 @@
             mobo: [{id:'all', label:'ALL'}, {id:'am5', label:'AM5'}, {id:'am4', label:'AM4'}, {id:'lga1700', label:'LGA1700'}, {id:'lga1200', label:'LGA1200'}],
             ram: [{id:'all', label:'ALL'}, {id:'ddr5', label:'DDR5'}, {id:'ddr4', label:'DDR4'}],
             storage: [{id:'all', label:'ALL'}, {id:'4tb', label:'4TB'}, {id:'2tb', label:'2TB'}, {id:'1tb', label:'1TB'}],
+            monitor: [
+                { key: 'resolution', label: 'Resolution' },
+                { key: 'hz', label: 'Refresh Rate' }
+            ],
             psu: [{id:'all', label:'ALL'}, {id:'1000', label:'1000W+'}, {id:'850', label:'850W'}, {id:'750', label:'750W'}],
             cooling: [{id:'all', label:'ALL'}, {id:'360', label:'360mm'}, {id:'240', label:'240mm'}, {id:'air', label:'Air'}],
             fans: [{id:'all', label:'ALL'}], accessories: [{id:'all', label:'ALL'}], monitor: [{id:'all', label:'ALL'}]
@@ -847,6 +855,30 @@
                 }
             }
 
+
+            // 4. Phase 2: Physical Clearance Checks
+            const pc_case = db.case.find(c => c.id === state.case);
+            const cooler = db.cooler.find(c => c.id === state.cooler);
+            const selected_gpu = db.gpu.find(g => g.id === state.gpu);
+
+            if (pc_case && pc_case.id !== 'none' && aiInterventionMessage === "") {
+                if (selected_gpu && selected_gpu.id !== 'none' && selected_gpu.length) {
+                    if (selected_gpu.length > pc_case.maxLength) {
+                        state.gpu = 'none';
+                        aiInterventionMessage = `AI AUTO-FIX: The selected Graphics Card is ${selected_gpu.length}mm long, but the Case only supports up to ${pc_case.maxLength}mm! The GPU was removed to prevent a physical collision.`;
+                    }
+                }
+            }
+
+            if (pc_case && pc_case.id !== 'none' && aiInterventionMessage === "") {
+                if (cooler && cooler.id !== 'none') {
+                    if (cooler.height > 0 && cooler.height > pc_case.maxCoolerHeight) {
+                        state.cooler = 'none';
+                        aiInterventionMessage = `AI AUTO-FIX: The selected Air Cooler is ${cooler.height}mm tall, but the Case only supports up to ${pc_case.maxCoolerHeight}mm! The Cooler was removed because the glass side panel would not close.`;
+                    }
+                }
+            }
+
             // 3. Power Supply Check
             if (psu && psu.id !== 'none' && aiInterventionMessage === "") {
                 const estDraw = estimateWattage();
@@ -984,6 +1016,10 @@
             mobo: [{ key: 'socket', label: 'Socket' }, { key: 'form_factor', label: 'Form Factor' }, { key: 'ramType', label: 'RAM Type' }],
             ram: [{ key: 'type', label: 'Type' }, { key: 'capacity', label: 'Capacity' }],
             storage: [{ key: 'type', label: 'Type' }, { key: 'capacity', label: 'Capacity' }],
+            monitor: [
+                { key: 'resolution', label: 'Resolution' },
+                { key: 'hz', label: 'Refresh Rate' }
+            ],
             psu: [{ key: 'wattage', label: 'Wattage' }, { key: 'cert', label: 'Efficiency' }],
             case: [{ key: 'form_factor', label: 'Form Factor' }]
         };
@@ -1182,9 +1218,11 @@
         function toggleView(view) {
             document.getElementById('view-builder').style.display = view === 'builder' ? 'grid' : 'none';
             document.getElementById('view-compare').style.display = view === 'compare' ? 'block' : 'none';
-            document.getElementById('btn-builder').className = view === 'builder' ? 'nav-btn active' : 'nav-btn';
-            document.getElementById('btn-compare').className = view === 'compare' ? 'nav-btn active' : 'nav-btn';
-            if (view === 'compare') renderCompareGrid();
+            document.getElementById('view-community').style.display = view === 'community' ? 'block' : 'none';
+            document.getElementById('nav-builder').classList.toggle('active', view === 'builder');
+            document.getElementById('nav-compare').classList.toggle('active', view === 'compare');
+            document.getElementById('nav-community').classList.toggle('active', view === 'community');
+            if (view === 'community') loadCommunityFeed();
         }
 
         function estimateWattage() {
@@ -1662,6 +1700,71 @@
         updateTelemetry();
         if (window.innerWidth <= 900) document.getElementById('view-builder').style.display = 'grid'; 
     
+
+        function publishBuild() {
+            let published = JSON.parse(localStorage.getItem('publishedBuilds')) || [];
+            let total = 0;
+            let buildParts = [];
+            categories.forEach(cat => {
+                const item = db[cat.key].find(i => i.id === state[cat.key]);
+                if (item && item.id !== 'none') {
+                    buildParts.push(item.name);
+                    total += item.price;
+                }
+            });
+            if (buildParts.length === 0) return alert("Your build is empty!");
+            
+            const username = prompt("Enter a username for your build:", "Anonymous");
+            if (!username) return;
+            
+            published.unshift({
+                user: username,
+                date: new Date().toLocaleDateString(),
+                parts: buildParts.join(' | '),
+                price: total,
+                likes: 0
+            });
+            localStorage.setItem('publishedBuilds', JSON.stringify(published));
+            loadCommunityFeed();
+            alert("Build published to the global feed!");
+        }
+
+        function loadCommunityFeed() {
+            let published = JSON.parse(localStorage.getItem('publishedBuilds')) || [];
+            const container = document.getElementById('community-feed');
+            
+            if (published.length === 0) {
+                container.innerHTML = "<div style='color: #666; text-align: center; padding: 40px;'>No builds published yet. Be the first!</div>";
+                return;
+            }
+            
+            let html = "";
+            published.forEach((b, i) => {
+                html += `
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 4px; padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                            <div style="font-weight: bold; color: var(--accent);">👤 ${b.user}</div>
+                            <div style="color: #888;">${b.date} • <strong style="color: #fff;">$${b.price}</strong></div>
+                        </div>
+                        <div style="color: #bbb; line-height: 1.6; font-size: 0.9rem; margin-bottom: 15px;">
+                            ${b.parts}
+                        </div>
+                        <button class="nav-btn" onclick="likeBuild(${i})" style="font-size: 0.8rem;">👍 LIKE (${b.likes})</button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function likeBuild(index) {
+            let published = JSON.parse(localStorage.getItem('publishedBuilds')) || [];
+            if (published[index]) {
+                published[index].likes++;
+                localStorage.setItem('publishedBuilds', JSON.stringify(published));
+                loadCommunityFeed();
+            }
+        }
+
         // --- Part Details Modal ---
         let priceChartInstance = null;
 
