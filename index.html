@@ -780,7 +780,7 @@
                 
                 // Intel 14th Gen
                 cpu_intel_14900k: 'https://images-na.ssl-images-amazon.com/images/P/B0CGJ41C9W.01.MAIN._SCRM_.jpg',
-                cpu_intel_14700k: 'https://images-na.ssl-images-amazon.com/images/P/B0CGJ4X9L4.01.MAIN._SCRM_.jpg',
+                cpu_intel_14700k: 'https://images-na.ssl-images-amazon.com/images/P/B0BCF57FL5.01.MAIN._SCRM_.jpg', // using 13700k image as 14700k ASIN returns 1x1 pixel
                 cpu_intel_14600k: 'https://images-na.ssl-images-amazon.com/images/P/B0CHBGVFHP.01.MAIN._SCRM_.jpg',
                 // Intel 13th/12th Gen
                 cpu_intel_13900k: 'https://images-na.ssl-images-amazon.com/images/P/B0BCF54SR1.01.MAIN._SCRM_.jpg',
@@ -813,7 +813,7 @@
                     if (n.includes('9700') || n.includes('9600')) return amazonImages.cpu_amd_9700x;
                     
                     if (n.includes('7950') || n.includes('7900')) return amazonImages.cpu_amd_7950x;
-                    if (n.includes('7800') || n.includes('7700')) return amazonImages.cpu_amd_7800x;
+                    if (n.includes('9800') || n.includes('7800') || n.includes('7700')) return amazonImages.cpu_amd_7800x;
                     if (n.includes('7600')) return amazonImages.cpu_amd_7600x;
                     
                     if (n.includes('5950') || n.includes('5900')) return amazonImages.cpu_amd_5950x;
