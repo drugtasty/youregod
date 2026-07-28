@@ -419,9 +419,8 @@
     </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Three.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- Sketchfab API -->
+    <script type="text/javascript" src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
 </head>
 <body>
     <!-- Snow Canvas Background -->
@@ -648,7 +647,9 @@
 
             <!-- 3D Canvas Panel -->
             <div class="panel" id="canvas-panel" style="padding: 0; position: relative; background: #050505; border: 1px solid var(--border-color); overflow: hidden;">
-                <div id="canvas-container" style="width: 100%; height: 100%;"></div>
+                <div id="canvas-container" style="width: 100%; height: 100%;">
+                    <iframe src="" id="api-frame" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" style="width:100%; height:100%; border:0;"></iframe>
+                </div>
                 
                 <div id="immersion-hud" style="position: absolute; top: 20px; left: 20px; z-index: 20; color: #fff; pointer-events: none;">
                     <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #aaa; margin-bottom: 5px;">HOLOGRAPHIC HUD // ONLINE</div>
@@ -2071,150 +2072,106 @@
         // -----------------------------------------
         // 3D ENGINE & IMMERSION LOGIC
         // -----------------------------------------
-        var scene, camera, renderer, controls;
-        var pcGroup, caseMesh, moboMesh, gpuMesh, fanMeshes = [];
-        var textureLoader;
-        var aioTubesGroup;
+        var api;
         var isPoweredOn = true;
-        var currentFanSpeed = 0.1;
-        var targetFanSpeed = 0.2;
-        var customRGB = "#ff4444";
+        var currentRGB = [1, 0.2, 0.2];
+        var rgbMaterials = [];
 
         function init3D() {
-            const container = document.getElementById('canvas-container');
-            if (!container) return;
-            if (scene) return; // already initialized
+            var iframe = document.getElementById('api-frame');
+            if (!iframe) return;
+            var uid = '2666a4f5f1904a448408a05c7546ef85';
+            var client = new Sketchfab(1.12.1, iframe);
 
-            scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x050505, 0.02);
-
-            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-            camera.position.set(-20, 15, 30);
-
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            container.appendChild(renderer.domElement);
-
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.target.set(0, 0, 0);
-
-            const ambient = new THREE.AmbientLight(0xffffff, 0.3);
-            scene.add(ambient);
-            
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            dirLight.position.set(10, 20, 10);
-            scene.add(dirLight);
-            
-            const accentLight = new THREE.PointLight(0xff4444, 1.5, 50);
-            accentLight.position.set(0, 5, 0);
-            scene.add(accentLight);
-
-            pcGroup = new THREE.Group();
-            scene.add(pcGroup);
-
-            textureLoader = new THREE.TextureLoader();
-
-            // 1. Case
-            const caseGeo = new THREE.BoxGeometry(15, 20, 25);
-            const caseMat = new THREE.MeshPhysicalMaterial({ color: 0x111111, transparent: true, opacity: 0.15, roughness: 0.1, metalness: 0.8, side: THREE.DoubleSide });
-            caseMesh = new THREE.Mesh(caseGeo, caseMat);
-            const edges = new THREE.EdgesGeometry(caseGeo);
-            const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x333333 }));
-            caseMesh.add(line);
-            pcGroup.add(caseMesh);
-
-            // 2. Motherboard
-            const moboTex = textureLoader.load('assets/mobo_tex_1785149470912.jpg');
-            const moboGeo = new THREE.PlaneGeometry(12, 16);
-            const moboMat = new THREE.MeshStandardMaterial({ map: moboTex, roughness: 0.8 });
-            moboMesh = new THREE.Mesh(moboGeo, moboMat);
-            moboMesh.rotation.y = Math.PI / 2;
-            moboMesh.position.set(-7.4, 0, -2);
-            pcGroup.add(moboMesh);
-
-            // 3. GPU
-            const gpuTex = textureLoader.load('assets/gpu_tex_1785149464384.jpg');
-            const gpuGeo = new THREE.BoxGeometry(3, 6, 15);
-            const materials = [
-                new THREE.MeshStandardMaterial({ color: 0x222222 }),
-                new THREE.MeshStandardMaterial({ map: gpuTex }),
-                new THREE.MeshStandardMaterial({ color: 0x111111 }),
-                new THREE.MeshStandardMaterial({ color: 0x111111 }),
-                new THREE.MeshStandardMaterial({ color: 0x333333 }),
-                new THREE.MeshStandardMaterial({ color: 0x333333 })
-            ];
-            gpuMesh = new THREE.Mesh(gpuGeo, materials);
-            gpuMesh.position.set(-4, -4, -2);
-            pcGroup.add(gpuMesh);
-
-            // 4. Fans
-            const fanTex = textureLoader.load('assets/fan_tex_1785149457397.jpg');
-            const fanGeo = new THREE.CylinderGeometry(2, 2, 1, 32);
-            const fanMat = new THREE.MeshStandardMaterial({ map: fanTex, color: 0xff4444 });
-            for(let i=0; i<3; i++) {
-                let fan = new THREE.Mesh(fanGeo, fanMat.clone());
-                fan.rotation.z = Math.PI / 2;
-                fan.position.set(7.4, (i*5) - 5, -5);
-                fanMeshes.push(fan);
-                pcGroup.add(fan);
-            }
-
-            let targetPos = new THREE.Vector3(-10, 5, 25);
-            let frame = 0;
-            
-            function animate() {
-                requestAnimationFrame(animate);
-                currentFanSpeed += (targetFanSpeed - currentFanSpeed) * 0.02;
-                fanMeshes.forEach(f => f.rotation.y += currentFanSpeed);
-                
-                if (frame < 120) {
-                    camera.position.lerp(targetPos, 0.02);
-                    frame++;
-                }
-                controls.update();
-                renderer.render(scene, camera);
-            }
-            animate();
-
-            window.addEventListener('resize', () => {
-                const w = container.clientWidth;
-                const h = container.clientHeight;
-                renderer.setSize(w, h);
-                camera.aspect = w / h;
-                camera.updateProjectionMatrix();
+            client.init(uid, {
+                success: function onSuccess(apiInstance) {
+                    api = apiInstance;
+                    api.start();
+                    api.addEventListener('viewerready', function() {
+                        console.log('Sketchfab Viewer is ready');
+                        // Attempt to find RGB materials
+                        api.getMaterialList(function(err, materials) {
+                            if(!err) {
+                                materials.forEach(mat => {
+                                    if(mat.name.toLowerCase().includes('led') || mat.name.toLowerCase().includes('rgb') || mat.name.toLowerCase().includes('light') || mat.name.toLowerCase().includes('emission')) {
+                                        rgbMaterials.push(mat);
+                                    }
+                                });
+                            }
+                        });
+                    });
+                },
+                error: function onError() {
+                    console.log('Sketchfab Viewer error');
+                },
+                autostart: 1,
+                ui_infos: 0,
+                ui_controls: 0,
+                ui_stop: 0,
+                watermark: 0,
+                transparent: 1
             });
+        }
+
+        function update3D() {
+            updateFPS();
+            // Optional: Hide/Show nodes using api.hide() or api.show() based on node map
         }
 
         function togglePower() {
             isPoweredOn = !isPoweredOn;
             const btn = document.getElementById('power-btn');
-            const light = scene.children.find(c => c.type === 'PointLight');
-            if(isPoweredOn) {
-                btn.style.background = customRGB;
-                btn.style.boxShadow = `0 0 15px ${customRGB}`;
-                targetFanSpeed = 0.2;
-                if (light) {
-                    light.intensity = 0;
-                    setTimeout(() => { if (isPoweredOn) light.intensity = 1.0; }, 100);
-                    setTimeout(() => { if (isPoweredOn) light.intensity = 0; }, 200);
-                    setTimeout(() => { if (isPoweredOn) light.intensity = 1.5; }, 400);
+            
+            if (isPoweredOn) {
+                btn.style.background = '#ff4444';
+                btn.style.boxShadow = `0 0 15px #ff4444`;
+                if(api && rgbMaterials.length > 0) {
+                    rgbMaterials.forEach(mat => {
+                        if(mat.channels.EmitColor) {
+                            mat.channels.EmitColor.enable = true;
+                            mat.channels.EmitColor.factor = 1.0;
+                            api.setMaterial(mat);
+                        }
+                    });
                 }
             } else {
                 btn.style.background = '#333';
                 btn.style.boxShadow = 'none';
-                targetFanSpeed = 0;
-                if (light) light.intensity = 0;
+                if(api && rgbMaterials.length > 0) {
+                    rgbMaterials.forEach(mat => {
+                        if(mat.channels.EmitColor) {
+                            mat.channels.EmitColor.enable = false;
+                            api.setMaterial(mat);
+                        }
+                    });
+                }
             }
         }
 
         function updateRGB(hexStr) {
-            customRGB = hexStr;
+            document.getElementById('rgb-picker').value = hexStr;
+            const btn = document.getElementById('power-btn');
             if (isPoweredOn) {
-                document.getElementById('power-btn').style.background = customRGB;
-                document.getElementById('power-btn').style.boxShadow = `0 0 15px ${customRGB}`;
+                btn.style.background = hexStr;
+                btn.style.boxShadow = `0 0 15px ${hexStr}`;
+            }
+            
+            const r = parseInt(hexStr.slice(1, 3), 16) / 255;
+            const g = parseInt(hexStr.slice(3, 5), 16) / 255;
+            const b = parseInt(hexStr.slice(5, 7), 16) / 255;
+            currentRGB = [r, g, b];
+
+            if(api && rgbMaterials.length > 0 && isPoweredOn) {
+                rgbMaterials.forEach(mat => {
+                    if(mat.channels.EmitColor) {
+                        mat.channels.EmitColor.color = currentRGB;
+                        mat.channels.EmitColor.enable = true;
+                        mat.channels.EmitColor.factor = 1.5;
+                        api.setMaterial(mat);
+                    }
+                });
+            }
+        }`;
             }
             const color = new THREE.Color(hexStr);
             const light = scene.children.find(c => c.type === 'PointLight');
