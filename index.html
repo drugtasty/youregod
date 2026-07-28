@@ -271,7 +271,7 @@
         
         .part-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;
-            padding: 15px; overflow-y: auto; flex: 1; min-height: 0;
+            padding: 15px; overflow-y: auto; flex: 1; min-height: 0; align-content: start;
         }
         .part-grid::-webkit-scrollbar { width: 8px; }
         .part-grid::-webkit-scrollbar-track { background: #1a1a1a; }
@@ -947,7 +947,6 @@
                 const filterConfig = {
             cpu: [{ key: 'cores', label: 'Cores' }, { key: 'socket', label: 'Socket' }],
             gpu: [
-                { key: 'chipset', label: 'Chipset' },
                 { key: 'memory_gb', label: 'Memory', type: 'slider', min: 0, max: 96, unit: 'GB' },
                 { key: 'tdp', label: 'TDP', type: 'slider', min: 0, max: 600, unit: 'W' },
                 { key: 'length', label: 'Length', type: 'slider', min: 0, max: 400, unit: 'mm', visualizer: './gpu_length.jpg' },
