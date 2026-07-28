@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><script>window.onerror = function(msg, url, line, col, error) { console.log("CAUGHT: " + msg + " at line " + line + ":" + col); };</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ULTIMATE BUILD // FPS ESTIMATOR</title>
@@ -2081,7 +2081,7 @@
             var iframe = document.getElementById('api-frame');
             if (!iframe) return;
             var uid = '2666a4f5f1904a448408a05c7546ef85';
-            var client = new Sketchfab(1.12.1, iframe);
+            var client = new Sketchfab('1.12.1', iframe);
 
             client.init(uid, {
                 success: function onSuccess(apiInstance) {
@@ -2114,7 +2114,6 @@
         }
 
         function update3D() {
-            updateFPS();
             // Optional: Hide/Show nodes using api.hide() or api.show() based on node map
         }
 
@@ -2171,80 +2170,10 @@
                     }
                 });
             }
-        }`;
-            }
-            const color = new THREE.Color(hexStr);
-            const light = scene.children.find(c => c.type === 'PointLight');
-            if (light) light.color.set(color);
-            fanMeshes.forEach(f => f.material.color.set(color));
-            if (aioTubesGroup) {
-                aioTubesGroup.children.forEach(c => c.material.color.set(color));
-            }
+
         }
 
-        function updateFPS() {
-            const cpu = db.cpu.find(c => c.id === state.cpu);
-            const gpu = db.gpu.find(g => g.id === state.gpu);
-            let cp = "--"; let wz = "--"; let val = "--";
-            
-            if (cpu && cpu.id !== 'none' && gpu && gpu.id !== 'none') {
-                const cScore = cpu.score || 0;
-                const gScore = gpu.score || 0;
-                const combinedScore = (gScore * 0.7) + (cScore * 0.3);
-                cp = Math.floor(combinedScore / 400);
-                wz = Math.floor(combinedScore / 180);
-                val = Math.floor(combinedScore / 50);
-                if (cp > 120) cp = 120;
-                if (val > 800) val = 800;
-            }
-            
-            document.getElementById('fps-cp').innerText = cp !== "--" ? cp + " FPS" : "-- FPS";
-            document.getElementById('fps-wz').innerText = wz !== "--" ? wz + " FPS" : "-- FPS";
-            document.getElementById('fps-val').innerText = val !== "--" ? val + " FPS" : "-- FPS";
-        }
 
-        function update3D() {
-            if (!gpuMesh) return;
-            updateFPS();
-            
-            const gpu = db.gpu.find(g => g.id === state.gpu);
-            if (gpu && gpu.id !== 'none') {
-                gpuMesh.visible = true;
-                const targetScale = gpu.length ? (gpu.length / 340) : 1;
-                gpuMesh.scale.set(1, targetScale, targetScale); 
-            } else {
-                gpuMesh.visible = false;
-            }
-            
-            const mobo = db.mobo.find(m => m.id === state.mobo);
-            if (mobo && mobo.id !== 'none') moboMesh.visible = true;
-            else moboMesh.visible = false;
-
-            const cooler = db.cooling.find(c => c.id === state.cooling);
-            if (aioTubesGroup) {
-                pcGroup.remove(aioTubesGroup);
-                aioTubesGroup = null;
-            }
-            
-            if (cooler && cooler.id !== 'none' && cooler.is_aio) {
-                aioTubesGroup = new THREE.Group();
-                const curve1 = new THREE.CatmullRomCurve3([
-                    new THREE.Vector3(-4, 0, -2), new THREE.Vector3(2, 2, -2), new THREE.Vector3(6, 6, -4)
-                ]);
-                const geo1 = new THREE.TubeGeometry(curve1, 20, 0.4, 8, false);
-                const mat = new THREE.MeshPhysicalMaterial({ color: customRGB, transmission: 0.9, opacity: 1, transparent: true, roughness: 0.1 });
-                const tube1 = new THREE.Mesh(geo1, mat);
-                aioTubesGroup.add(tube1);
-                
-                const curve2 = new THREE.CatmullRomCurve3([
-                    new THREE.Vector3(-4, -1, -2), new THREE.Vector3(1, -2, -3), new THREE.Vector3(6, 4, -4)
-                ]);
-                const geo2 = new THREE.TubeGeometry(curve2, 20, 0.4, 8, false);
-                const tube2 = new THREE.Mesh(geo2, mat);
-                aioTubesGroup.add(tube2);
-                pcGroup.add(aioTubesGroup);
-            }
-        }
 
 </script>
 
