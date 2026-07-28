@@ -422,6 +422,81 @@
             .component-item { border: 1px solid #ccc !important; page-break-inside: avoid; }
         }
 
+
+        /* Build Tier Badge */
+        .tier-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 80px; height: 80px; border-radius: 50%;
+            font-size: 2.2rem; font-weight: 900; font-family: 'JetBrains Mono', monospace;
+            border: 3px solid currentColor;
+            box-shadow: 0 0 30px currentColor;
+            transition: all 0.4s ease;
+            flex-shrink: 0;
+        }
+        .tier-s { color: #ff0080; }
+        .tier-a { color: #00ffcc; }
+        .tier-b { color: #3b82f6; }
+        .tier-c { color: #f59e0b; }
+        .tier-d { color: #f97316; }
+        .tier-f { color: #ef4444; }
+
+        /* Build Completion Ring */
+        .completion-ring-wrap {
+            display: flex; align-items: center; gap: 16px; padding: 16px;
+            background: rgba(0,0,0,0.3); border-radius: 8px; margin-bottom: 8px;
+        }
+        .ring-svg { transform: rotate(-90deg); }
+        .ring-track { fill: none; stroke: #222; stroke-width: 6; }
+        .ring-progress { fill: none; stroke: #00ffcc; stroke-width: 6;
+            stroke-linecap: round; stroke-dasharray: 157; stroke-dashoffset: 157;
+            transition: stroke-dashoffset 0.6s ease, stroke 0.3s;
+        }
+        .ring-label { font-size: 0.8rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; }
+        .ring-pct { font-size: 1.5rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+
+        /* Budget Slider */
+        .budget-slider-wrap { padding: 16px; background: rgba(0,0,0,0.3); border-radius: 8px; margin-bottom: 8px; }
+        .budget-slider-wrap label { font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: var(--text-secondary); text-transform: uppercase; display: block; margin-bottom: 8px; }
+        .budget-slider-wrap input[type=range] {
+            width: 100%; appearance: none; height: 4px; background: #222;
+            border-radius: 2px; outline: none; cursor: pointer;
+        }
+        .budget-slider-wrap input[type=range]::-webkit-slider-thumb {
+            appearance: none; width: 18px; height: 18px; border-radius: 50%;
+            background: #00ffcc; cursor: pointer; box-shadow: 0 0 10px #00ffcc88;
+        }
+        .budget-amount { font-size: 2rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: #00ffcc; }
+
+        /* Future Proof */
+        .future-proof-bar { display: flex; gap: 4px; margin-top: 6px; }
+        .fp-block { flex: 1; height: 8px; border-radius: 2px; background: #222; transition: background 0.3s; }
+        .fp-block.lit { background: #00ffcc; }
+
+        /* Part badges */
+        .part-badge {
+            display: inline-block; font-size: 0.6rem; font-weight: 700;
+            font-family: 'JetBrains Mono', monospace; padding: 1px 5px;
+            border-radius: 3px; margin-left: 6px; vertical-align: middle;
+        }
+        .badge-popular { background: #ff4444; color: #fff; }
+        .badge-value { background: #00aa44; color: #fff; }
+        .badge-new { background: #3b82f6; color: #fff; }
+
+        /* Amazon Cart Export Button */
+        .cart-export-btn {
+            width: 100%; padding: 12px; background: linear-gradient(135deg, #ff9900, #ff6600);
+            color: #000; font-weight: 800; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem; border: none; border-radius: 6px; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 1px;
+        }
+        .cart-export-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,153,0,0.4); }
+
+        /* Bottleneck Gauge */
+        .bottleneck-gauge { position: relative; width: 120px; height: 70px; margin: 0 auto; }
+        .gauge-arc { fill: none; }
+        .gauge-needle { transform-origin: 50% 100%; transition: transform 0.6s ease; }
+        .gauge-label-row { display: flex; justify-content: space-between; font-size: 0.6rem; color: #555; font-family: 'JetBrains Mono', monospace; }
+
     </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -542,6 +617,16 @@
                         <button class="btn-small" onclick="saveCustomPreset()">SAVE</button>
                     </div>
                 </div>
+
+                <div class="budget-slider-wrap">
+                    <label>⚡ BUDGET OPTIMIZER</label>
+                    <div class="budget-amount" id="budget-display">$1,500</div>
+                    <input type="range" id="budget-slider" min="300" max="6000" step="50" value="1500" oninput="onBudgetSlide(this.value)">
+                    <div style="display:flex;justify-content:space-between;font-size:0.65rem;color:#555;font-family:'JetBrains Mono',monospace;margin-top:4px;">
+                        <span>$300</span><span>$6,000</span>
+                    </div>
+                    <button class="buy-btn" onclick="applyBudgetBuild()" style="margin-top:10px;width:100%;padding:10px;font-size:0.75rem;">🔧 AUTO-BUILD FOR THIS BUDGET</button>
+                </div>
                 <div id="builder-container">
                     <!-- Javascript will inject dropdowns here -->
                 </div>
@@ -569,6 +654,27 @@
                 </div>
                 
                 <div id="build-gallery" class="build-gallery"></div>
+
+                <!-- Completion Ring + Tier Badge -->
+                <div class="completion-ring-wrap">
+                    <svg class="ring-svg" width="54" height="54" viewBox="0 0 54 54">
+                        <circle class="ring-track" cx="27" cy="27" r="25"/>
+                        <circle class="ring-progress" id="ring-progress" cx="27" cy="27" r="25"/>
+                    </svg>
+                    <div>
+                        <div class="ring-pct" id="ring-pct">0%</div>
+                        <div class="ring-label">BUILD COMPLETE</div>
+                    </div>
+                    <div style="margin-left:auto; text-align:center;">
+                        <div class="tier-badge tier-f" id="tier-badge">F</div>
+                        <div style="font-size:0.6rem;color:#555;font-family:'JetBrains Mono',monospace;margin-top:4px;">BUILD TIER</div>
+                    </div>
+                </div>
+
+                <!-- Amazon Cart Export -->
+                <div style="padding: 0 0 8px 0;">
+                    <button class="cart-export-btn" onclick="exportAmazonCart()">🛒 OPEN ALL PARTS ON AMAZON</button>
+                </div>
                 
                 <div class="stat-block">
                     <div class="stat-label">System Balance Analysis</div>
@@ -610,20 +716,51 @@
                 </div>
 
                 <div class="stat-block">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div class="stat-label">Future-Proofing Score</div>
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:1.2rem;font-weight:700;" id="fp-score">—</div>
+                    </div>
+                    <div class="future-proof-bar" id="fp-bar">
+                        <div class="fp-block" id="fp1"></div><div class="fp-block" id="fp2"></div>
+                        <div class="fp-block" id="fp3"></div><div class="fp-block" id="fp4"></div>
+                        <div class="fp-block" id="fp5"></div><div class="fp-block" id="fp6"></div>
+                        <div class="fp-block" id="fp7"></div><div class="fp-block" id="fp8"></div>
+                        <div class="fp-block" id="fp9"></div><div class="fp-block" id="fp10"></div>
+                    </div>
+                    <div style="font-size:0.65rem;color:#555;font-family:'JetBrains Mono',monospace;margin-top:6px;" id="fp-label">Select parts to calculate</div>
+                </div>
+
+                <div class="stat-block">
                     <div class="stat-label" style="margin-bottom: 10px;">In-Game FPS Estimator (DLSS Quality)</div>
                     <div class="game-select-container" style="display: flex; gap: 10px;">
                         <select id="game-selector" onchange="updateTelemetry()" style="flex: 2;">
+                            <optgroup label="AAA Games">
                             <option value="cyberpunk">Cyberpunk 2077</option>
-                            <option value="warzone">Call of Duty: Warzone 2.0</option>
+                            <option value="starfield">Starfield</option>
                             <option value="msfs">Microsoft Flight Simulator</option>
+                            <option value="elden_ring">Elden Ring</option>
+                            <option value="spiderman">Spider-Man 2 (PC)</option>
+                            <option value="gta6">GTA VI</option>
+                            <option value="rdr2">Red Dead Redemption 2</option>
+                            <option value="ac_shadows">Assassin's Creed Shadows</option>
+                            </optgroup>
+                            <optgroup label="FPS / Competitive">
+                            <option value="warzone">Call of Duty: Warzone</option>
+                            <option value="blackops6">Black Ops 6</option>
                             <option value="cs2">Counter-Strike 2</option>
-                            <option value="fortnite">Fortnite</option>
                             <option value="valorant">Valorant</option>
+                            <option value="fortnite">Fortnite</option>
+                            <option value="apex">Apex Legends</option>
+                            <option value="overwatch2">Overwatch 2</option>
+                            <option value="r6">Rainbow Six Siege</option>
+                            </optgroup>
+                            <optgroup label="Roblox">
                             <option value="roblox_dahood">Roblox (Da Hood)</option>
                             <option value="roblox_hoodcustoms">Roblox (Hood Customs)</option>
                             <option value="roblox_heavy">Roblox (Frontlines / Heavy)</option>
                             <option value="roblox_standard">Roblox (Blox Fruits / Standard)</option>
                             <option value="roblox_uncapped">Roblox (Uncapped / Lobby)</option>
+                            </optgroup>
                         </select>
                         <select id="preset-selector" onchange="updateTelemetry()" style="flex: 1;">
                             <option value="ultra">Ultra / High</option>
@@ -1910,6 +2047,7 @@
             updatePresetDropdown();
             updateTelemetry();
             updateGallery();
+            patchGameProfiles();
             if (window.innerWidth <= 900) document.getElementById('view-builder').style.display = 'grid'; 
         });
     
@@ -2173,6 +2311,173 @@
             <button class="nav-btn" style="width: 100%;" onclick="document.getElementById('spec-modal').style.display='none'">CLOSE</button>
         </div>
     </div>
+
+<script>
+        // ============================================================
+        // FEATURE: Build Tier Rating
+        // ============================================================
+        function calcTier() {
+            const gpu = db.gpu.find(g => g.id === state.gpu);
+            const cpu = db.cpu.find(c => c.id === state.cpu);
+            if (!gpu || gpu.id === 'none' || !cpu || cpu.id === 'none') return null;
+            const totalPrice = categories.reduce((sum, cat) => {
+                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
+                return sum + ((item && item.id !== 'none') ? (item.price * (qtyState[cat.key] || 1)) : 0);
+            }, 0);
+            if (totalPrice === 0) return null;
+            const perf = (gpu.score || 0) * 0.7 + (cpu.score || 0) * 0.3;
+            const ptp = perf / totalPrice;
+            if (ptp > 20)       return { tier: 'S', cls: 'tier-s' };
+            if (ptp > 14)       return { tier: 'A', cls: 'tier-a' };
+            if (ptp > 9)        return { tier: 'B', cls: 'tier-b' };
+            if (ptp > 6)        return { tier: 'C', cls: 'tier-c' };
+            if (ptp > 3)        return { tier: 'D', cls: 'tier-d' };
+            return { tier: 'F', cls: 'tier-f' };
+        }
+
+        function updateTierBadge() {
+            const badge = document.getElementById('tier-badge');
+            if (!badge) return;
+            const r = calcTier();
+            if (!r) { badge.textContent = '?'; badge.className = 'tier-badge'; badge.style.color='#444'; badge.style.borderColor='#444'; badge.style.boxShadow='none'; return; }
+            badge.textContent = r.tier;
+            badge.className = 'tier-badge ' + r.cls;
+        }
+
+        // ============================================================
+        // FEATURE: Build Completion Ring
+        // ============================================================
+        function updateCompletionRing() {
+            const required = ['cpu', 'mobo', 'ram', 'gpu', 'storage', 'psu', 'case', 'cooling'];
+            const filled = required.filter(k => state[k] && state[k] !== 'none').length;
+            const pct = Math.round((filled / required.length) * 100);
+            const offset = 157 - (pct / 100) * 157;
+            const ring = document.getElementById('ring-progress');
+            const label = document.getElementById('ring-pct');
+            if (!ring || !label) return;
+            ring.style.strokeDashoffset = offset;
+            label.textContent = pct + '%';
+            ring.style.stroke = pct === 100 ? '#00ffcc' : pct >= 75 ? '#3b82f6' : pct >= 50 ? '#f59e0b' : '#ef4444';
+        }
+
+        // ============================================================
+        // FEATURE: Future-Proofing Score
+        // ============================================================
+        function updateFutureProof() {
+            const scoreEl = document.getElementById('fp-score');
+            const labelEl = document.getElementById('fp-label');
+            if (!scoreEl) return;
+            const cpu = db.cpu.find(c => c.id === state.cpu);
+            const gpu = db.gpu.find(g => g.id === state.gpu);
+            const ram = db.ram.find(r => r.id === state.ram);
+            if (!cpu || cpu.id === 'none' || !gpu || gpu.id === 'none') {
+                scoreEl.textContent = '—';
+                if (labelEl) labelEl.textContent = 'Select parts to calculate';
+                return;
+            }
+            let score = 0;
+            const reasons = [];
+            if (cpu.socket === 'AM5') { score += 2; reasons.push('AM5 socket'); }
+            else if (cpu.socket === 'LGA1851') { score += 2; reasons.push('LGA1851'); }
+            else { score += 1; }
+            if (cpu.gen === 'Zen 5' || cpu.gen === 'Arrow Lake') score += 2;
+            else if (cpu.gen === 'Zen 4' || cpu.gen === 'Raptor Lake') score += 1;
+            const vram = parseInt(gpu.vram) || 0;
+            if (vram >= 24) { score += 2; reasons.push('24GB+ VRAM'); }
+            else if (vram >= 16) { score += 1.5; reasons.push('16GB VRAM'); }
+            else if (vram >= 12) score += 1;
+            if (ram && ram.id !== 'none' && (ram.type === 'DDR5' || (ram.name && ram.name.includes('DDR5')))) { score += 2; reasons.push('DDR5'); }
+            else if (ram && ram.id !== 'none') score += 0.5;
+            if ((gpu.pcie_gen || 0) >= 5) score += 1;
+            else if ((gpu.pcie_gen || 0) >= 4) score += 0.5;
+            score = Math.min(10, Math.round(score * 10) / 10);
+            scoreEl.textContent = score.toFixed(1) + '/10';
+            scoreEl.style.color = score >= 8 ? '#00ffcc' : score >= 6 ? '#3b82f6' : score >= 4 ? '#f59e0b' : '#ef4444';
+            for (let i = 1; i <= 10; i++) {
+                const el = document.getElementById('fp' + i);
+                if (el) el.classList.toggle('lit', i <= Math.round(score));
+            }
+            if (labelEl) labelEl.textContent = reasons.slice(0, 2).join(' · ') || 'Score calculated';
+        }
+
+        // ============================================================
+        // FEATURE: Amazon Cart Export
+        // ============================================================
+        function exportAmazonCart() {
+            const urls = [];
+            categories.forEach(cat => {
+                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
+                if (!item || item.id === 'none') return;
+                urls.push(item.amazon_url || 'https://www.amazon.com/s?k=' + encodeURIComponent(item.name));
+            });
+            if (urls.length === 0) { alert('Select some parts first!'); return; }
+            urls.forEach((url, i) => setTimeout(() => window.open(url, '_blank'), i * 250));
+        }
+
+        // ============================================================
+        // FEATURE: Budget Auto-Build
+        // ============================================================
+        function onBudgetSlide(val) {
+            const disp = document.getElementById('budget-display');
+            if (disp) disp.textContent = '$' + parseInt(val).toLocaleString();
+        }
+
+        function applyBudgetBuild() {
+            const budget = parseInt(document.getElementById('budget-slider').value);
+            let presetId;
+            if (budget <= 600)       presetId = 'budget_gaming';
+            else if (budget <= 1000) presetId = 'value_1080p';
+            else if (budget <= 1600) presetId = 'mainstream_1440p';
+            else if (budget <= 2500) presetId = 'high_end_4k';
+            else if (budget <= 4000) presetId = 'ultra_enthusiast';
+            else                     presetId = 'god_tier';
+            const p = presets.find(pr => pr.id === presetId);
+            if (p) { loadPreset(p.id); return; }
+            // Fallback smart select
+            const gpuBudget = Math.floor(budget * 0.35);
+            const cpuBudget = Math.floor(budget * 0.2);
+            const bestGpu = [...db.gpu].filter(g => g.price <= gpuBudget && g.id !== 'none').sort((a,b) => b.score - a.score)[0];
+            const bestCpu = [...db.cpu].filter(c => c.price <= cpuBudget && c.id !== 'none').sort((a,b) => b.score - a.score)[0];
+            if (bestGpu) state.gpu = bestGpu.id;
+            if (bestCpu) state.cpu = bestCpu.id;
+            initUI(); updateTelemetry(); updateGallery();
+        }
+
+        // ============================================================
+        // FEATURE: Patch extra game FPS profiles
+        // ============================================================
+        function patchGameProfiles() {
+            if (typeof gameProfiles === 'undefined') return;
+            const extra = {
+                starfield:  { base: 38,  cpuWeight: 0.35, gpuWeight: 0.65, scale1440: 0.72, scale4k: 0.5  },
+                elden_ring: { base: 68,  cpuWeight: 0.2,  gpuWeight: 0.8,  scale1440: 0.75, scale4k: 0.52 },
+                spiderman:  { base: 82,  cpuWeight: 0.25, gpuWeight: 0.75, scale1440: 0.7,  scale4k: 0.48 },
+                gta6:       { base: 44,  cpuWeight: 0.3,  gpuWeight: 0.7,  scale1440: 0.72, scale4k: 0.5  },
+                rdr2:       { base: 60,  cpuWeight: 0.25, gpuWeight: 0.75, scale1440: 0.7,  scale4k: 0.48 },
+                ac_shadows: { base: 52,  cpuWeight: 0.3,  gpuWeight: 0.7,  scale1440: 0.72, scale4k: 0.5  },
+                blackops6:  { base: 110, cpuWeight: 0.4,  gpuWeight: 0.6,  scale1440: 0.78, scale4k: 0.55 },
+                apex:       { base: 130, cpuWeight: 0.5,  gpuWeight: 0.5,  scale1440: 0.82, scale4k: 0.6  },
+                overwatch2: { base: 160, cpuWeight: 0.5,  gpuWeight: 0.5,  scale1440: 0.85, scale4k: 0.62 },
+                r6:         { base: 180, cpuWeight: 0.55, gpuWeight: 0.45, scale1440: 0.88, scale4k: 0.65 },
+            };
+            Object.assign(gameProfiles, extra);
+        }
+
+        // Hook new features into telemetry updates
+        document.addEventListener('DOMContentLoaded', () => {
+            patchGameProfiles();
+        });
+
+        const _origTelemetry2 = typeof updateTelemetry !== 'undefined' ? updateTelemetry : null;
+        if (_origTelemetry2) {
+            updateTelemetry = function() {
+                _origTelemetry2.apply(this, arguments);
+                updateTierBadge();
+                updateCompletionRing();
+                updateFutureProof();
+            };
+        }
+</script>
 
 </body>
 
