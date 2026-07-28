@@ -334,9 +334,12 @@
                 </div>
                 <div>
                     <div class="filter-group-title">Brand</div>
-                    <div id="brand-filters">
+                    <div id="brand-filters" style="margin-bottom: 20px;">
                         <!-- Checkboxes populated via JS -->
                     </div>
+                </div>
+                <div id="dynamic-filters-container" style="display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Dynamic filters (cores, sockets, etc.) injected here -->
                 </div>
             </div>
             <div class="selector-main">
@@ -809,8 +812,8 @@
 
             if (catKey === 'cpu') {
                 if (n.includes('amd') || n.includes('ryzen')) {
-                    if (n.includes('9950') || n.includes('9900')) return amazonImages.cpu_amd_9950x;
-                    if (n.includes('9700') || n.includes('9600')) return amazonImages.cpu_amd_9700x;
+                    // Just use the 9950X box for all 9000 series since it works perfectly and is identical
+                    if (n.includes('9950') || n.includes('9900') || n.includes('9700') || n.includes('9600')) return amazonImages.cpu_amd_9950x;
                     
                     if (n.includes('7950') || n.includes('7900')) return amazonImages.cpu_amd_7950x;
                     if (n.includes('9800') || n.includes('7800') || n.includes('7700')) return amazonImages.cpu_amd_7800x;
@@ -822,11 +825,12 @@
                 } else {
                     if (n.includes('14900') || n.includes('285k')) return amazonImages.cpu_intel_14900k;
                     if (n.includes('14700') || n.includes('265k')) return amazonImages.cpu_intel_14700k;
-                    if (n.includes('14600') || n.includes('245k')) return amazonImages.cpu_intel_14600k;
+                    // Map 14th/13th/12th gen i5 to the working 14600k ASIN to prevent 1x1 pixel blank boxes
+                    if (n.includes('14600') || n.includes('13600') || n.includes('12600') || n.includes('245k')) return amazonImages.cpu_intel_14600k;
                     
                     if (n.includes('13900') || n.includes('12900')) return amazonImages.cpu_intel_13900k;
                     if (n.includes('13700') || n.includes('12700')) return amazonImages.cpu_intel_13700k;
-                    if (n.includes('13600') || n.includes('13400') || n.includes('12600') || n.includes('12400')) return amazonImages.cpu_intel_13600k;
+                    if (n.includes('13400') || n.includes('12400')) return amazonImages.cpu_intel_14600k;
                     return amazonImages.cpu_intel_generic;
                 }
             }
@@ -872,6 +876,15 @@
             return 'Other';
         }
 
+        const filterConfig = {
+            cpu: [{ key: 'cores', label: 'Cores' }, { key: 'socket', label: 'Socket' }],
+            mobo: [{ key: 'socket', label: 'Socket' }, { key: 'form_factor', label: 'Form Factor' }, { key: 'ramType', label: 'RAM Type' }],
+            ram: [{ key: 'type', label: 'Type' }, { key: 'capacity', label: 'Capacity' }],
+            storage: [{ key: 'type', label: 'Type' }, { key: 'capacity', label: 'Capacity' }],
+            psu: [{ key: 'wattage', label: 'Wattage' }, { key: 'cert', label: 'Efficiency' }],
+            case: [{ key: 'form_factor', label: 'Form Factor' }]
+        };
+
         function openPartSelector(catKey) {
             currentSelectorCat = catKey;
             const cat = categories.find(c => c.key === catKey);
@@ -888,6 +901,30 @@
                 brandHTML += `<label class="filter-checkbox"><input type="checkbox" value="${b}" class="brand-check" onchange="updateSelectorGrid()" checked> ${b}</label>`;
             });
             document.getElementById('brand-filters').innerHTML = brandHTML;
+            
+            // Generate Dynamic Filters (Cores, Sockets, etc.)
+            let dynamicHTML = '';
+            const configs = filterConfig[catKey] || [];
+            configs.forEach(conf => {
+                const uniqueValues = new Set();
+                db[catKey].forEach(item => {
+                    if (item.id !== 'none' && item[conf.key]) uniqueValues.add(item[conf.key].toString());
+                });
+                if (uniqueValues.size > 0) {
+                    // Sort numerically if possible, otherwise alphabetically
+                    const vals = Array.from(uniqueValues).sort((a, b) => {
+                        const numA = parseFloat(a); const numB = parseFloat(b);
+                        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+                        return a.localeCompare(b);
+                    });
+                    dynamicHTML += `<div><div class="filter-group-title">${conf.label}</div>`;
+                    vals.forEach(v => {
+                        dynamicHTML += `<label class="filter-checkbox"><input type="checkbox" value="${v}" class="dyn-filter-${conf.key}" onchange="updateSelectorGrid()"> ${v}</label>`;
+                    });
+                    dynamicHTML += `</div>`;
+                }
+            });
+            document.getElementById('dynamic-filters-container').innerHTML = dynamicHTML;
             
             document.getElementById('selector-search').value = '';
             document.getElementById('price-slider').value = 3000;
@@ -909,6 +946,14 @@
             document.getElementById('price-val').innerText = maxPrice >= 3000 ? '$3000+' : `$${maxPrice}`;
             
             const activeBrands = Array.from(document.querySelectorAll('.brand-check:checked')).map(cb => cb.value);
+
+            // Get active dynamic filters
+            const activeDynFilters = {};
+            const configs = filterConfig[currentSelectorCat] || [];
+            configs.forEach(conf => {
+                const checks = Array.from(document.querySelectorAll(`.dyn-filter-${conf.key}:checked`)).map(cb => cb.value);
+                if (checks.length > 0) activeDynFilters[conf.key] = checks;
+            });
 
             const cpu = db.cpu.find(c => c.id === state.cpu);
             const mobo = db.mobo.find(m => m.id === state.mobo);
@@ -933,6 +978,13 @@
                 const itemBrand = extractBrand(item.name);
                 if (!activeBrands.includes(itemBrand)) isCompatible = false;
 
+                // Apply dynamic filters
+                for (const [k, validVals] of Object.entries(activeDynFilters)) {
+                    if (!item[k] || !validVals.includes(item[k].toString())) {
+                        isCompatible = false;
+                    }
+                }
+                
                 if (isCompatible) {
                     count++;
                     const specs = item.socket ? `Socket: ${item.socket}` : (item.type ? `Type: ${item.type}` : '');
