@@ -738,7 +738,7 @@
                     qtyState[cat.key] = preset.qtyState ? (preset.qtyState[cat.key] || 1) : 1;
                 });
                 aiInterventionMessage = "";
-                refreshDropdowns();
+                refreshBuilderDisplay();
                 updateTelemetry();
             }
         }
@@ -821,7 +821,7 @@
             Array.from(container.children).forEach(btn => btn.classList.remove('active'));
             const index = categoryFilters[catKey].findIndex(f => f.id === filterId);
             container.children[index].classList.add('active');
-            refreshDropdowns();
+            refreshBuilderDisplay();
         }
 
         function resolveConflicts() {
