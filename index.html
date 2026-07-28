@@ -50,8 +50,8 @@
         .status-dot { width: 8px; height: 8px; background-color: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent-glow); animation: pulse 2s infinite;}
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-        .grid-layout { display: grid; grid-template-columns: 1fr 400px; gap: 24px; }
-        @media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } }
+        
+        
 
         /* Panels */
         .panel { 
@@ -399,16 +399,35 @@
             transition: width 0.1s;
         }
     
-        @media print {
-            body { background: #fff !important; color: #000 !important; }
+        
             .nav-btn, .custom-select, #selector-modal, #community-feed, .filter-container { display: none !important; }
             #view-builder { display: block !important; }
             .part-row { background: #fff !important; border: 1px solid #ccc !important; color: #000 !important; }
             .part-row img { filter: grayscale(100%); }
         }
-</style>
+
+        .grid-layout { display: grid; grid-template-columns: 1.5fr 1fr 2fr; gap: 24px; height: 100%; min-height: 80vh; }
+        
+        @media (max-width: 1200px) { 
+            .grid-layout { grid-template-columns: 1fr; height: auto; } 
+            #canvas-panel { min-height: 500px; border-left: none !important; border-top: 1px solid var(--border-color); }
+        }
+
+        @media print {
+            body { background: #fff !important; color: #000 !important; }
+            .filter-container, .nav-btn, .ai-panel, #canvas-panel, .panel-header button, .panel-header input, #snowCanvas { display: none !important; }
+            .grid-layout { grid-template-columns: 1fr !important; height: auto !important; }
+            .panel { box-shadow: none !important; border: 1px solid #ccc !important; }
+            #builder-container { border: none !important; }
+            .component-item { border: 1px solid #ccc !important; page-break-inside: avoid; }
+        }
+
+    </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
     <!-- Snow Canvas Background -->
@@ -770,6 +789,7 @@
                 aiInterventionMessage = "";
                 refreshBuilderDisplay();
                 updateTelemetry();
+            if(typeof update3D === 'function') update3D();
             }
         }
 
@@ -863,6 +883,7 @@
             document.getElementById('custom-modal').style.display = 'none';
             initUI(); 
             updateTelemetry();
+            if(typeof update3D === 'function') update3D();
         }
 
         function setFilter(catKey, filterId) {
@@ -1256,6 +1277,7 @@
             resolveConflicts();
             refreshBuilderDisplay();
             updateTelemetry();
+            if(typeof update3D === 'function') update3D();
         }
 
         function handleQtyChange(categoryKey) {
@@ -1267,6 +1289,7 @@
                 qtyState[categoryKey] = qty;
             }
             updateTelemetry();
+            if(typeof update3D === 'function') update3D();
         }
 
         function checkThermalPaste() {
@@ -1850,6 +1873,7 @@
         initChart();
         updatePresetDropdown();
         updateTelemetry();
+            if(typeof update3D === 'function') update3D();
         if (window.innerWidth <= 900) document.getElementById('view-builder').style.display = 'grid'; 
     
 
@@ -2021,7 +2045,229 @@
         }
         
         // Allow closing modal by clicking outside
-    </script>
+    
+        // -----------------------------------------
+        // 3D ENGINE & IMMERSION LOGIC
+        // -----------------------------------------
+        var scene, camera, renderer, controls;
+        var pcGroup, caseMesh, moboMesh, gpuMesh, fanMeshes = [];
+        var textureLoader;
+        var aioTubesGroup;
+        var isPoweredOn = true;
+        var currentFanSpeed = 0.1;
+        var targetFanSpeed = 0.2;
+        var customRGB = "#ff4444";
+
+        function init3D() {
+            const container = document.getElementById('canvas-container');
+            if (!container) return;
+            if (scene) return; // already initialized
+
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x050505, 0.02);
+
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(-20, 15, 30);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.target.set(0, 0, 0);
+
+            const ambient = new THREE.AmbientLight(0xffffff, 0.3);
+            scene.add(ambient);
+            
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(10, 20, 10);
+            scene.add(dirLight);
+            
+            const accentLight = new THREE.PointLight(0xff4444, 1.5, 50);
+            accentLight.position.set(0, 5, 0);
+            scene.add(accentLight);
+
+            pcGroup = new THREE.Group();
+            scene.add(pcGroup);
+
+            textureLoader = new THREE.TextureLoader();
+
+            // 1. Case
+            const caseGeo = new THREE.BoxGeometry(15, 20, 25);
+            const caseMat = new THREE.MeshPhysicalMaterial({ color: 0x111111, transparent: true, opacity: 0.15, roughness: 0.1, metalness: 0.8, side: THREE.DoubleSide });
+            caseMesh = new THREE.Mesh(caseGeo, caseMat);
+            const edges = new THREE.EdgesGeometry(caseGeo);
+            const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x333333 }));
+            caseMesh.add(line);
+            pcGroup.add(caseMesh);
+
+            // 2. Motherboard
+            const moboTex = textureLoader.load('assets/mobo_tex_1785149470912.jpg');
+            const moboGeo = new THREE.PlaneGeometry(12, 16);
+            const moboMat = new THREE.MeshStandardMaterial({ map: moboTex, roughness: 0.8 });
+            moboMesh = new THREE.Mesh(moboGeo, moboMat);
+            moboMesh.rotation.y = Math.PI / 2;
+            moboMesh.position.set(-7.4, 0, -2);
+            pcGroup.add(moboMesh);
+
+            // 3. GPU
+            const gpuTex = textureLoader.load('assets/gpu_tex_1785149464384.jpg');
+            const gpuGeo = new THREE.BoxGeometry(3, 6, 15);
+            const materials = [
+                new THREE.MeshStandardMaterial({ color: 0x222222 }),
+                new THREE.MeshStandardMaterial({ map: gpuTex }),
+                new THREE.MeshStandardMaterial({ color: 0x111111 }),
+                new THREE.MeshStandardMaterial({ color: 0x111111 }),
+                new THREE.MeshStandardMaterial({ color: 0x333333 }),
+                new THREE.MeshStandardMaterial({ color: 0x333333 })
+            ];
+            gpuMesh = new THREE.Mesh(gpuGeo, materials);
+            gpuMesh.position.set(-4, -4, -2);
+            pcGroup.add(gpuMesh);
+
+            // 4. Fans
+            const fanTex = textureLoader.load('assets/fan_tex_1785149457397.jpg');
+            const fanGeo = new THREE.CylinderGeometry(2, 2, 1, 32);
+            const fanMat = new THREE.MeshStandardMaterial({ map: fanTex, color: 0xff4444 });
+            for(let i=0; i<3; i++) {
+                let fan = new THREE.Mesh(fanGeo, fanMat.clone());
+                fan.rotation.z = Math.PI / 2;
+                fan.position.set(7.4, (i*5) - 5, -5);
+                fanMeshes.push(fan);
+                pcGroup.add(fan);
+            }
+
+            let targetPos = new THREE.Vector3(-10, 5, 25);
+            let frame = 0;
+            
+            function animate() {
+                requestAnimationFrame(animate);
+                currentFanSpeed += (targetFanSpeed - currentFanSpeed) * 0.02;
+                fanMeshes.forEach(f => f.rotation.y += currentFanSpeed);
+                
+                if (frame < 120) {
+                    camera.position.lerp(targetPos, 0.02);
+                    frame++;
+                }
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                renderer.setSize(w, h);
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+            });
+        }
+
+        function togglePower() {
+            isPoweredOn = !isPoweredOn;
+            const btn = document.getElementById('power-btn');
+            const light = scene.children.find(c => c.type === 'PointLight');
+            if(isPoweredOn) {
+                btn.style.background = customRGB;
+                btn.style.boxShadow = `0 0 15px ${customRGB}`;
+                targetFanSpeed = 0.2;
+                if (light) {
+                    light.intensity = 0;
+                    setTimeout(() => { if (isPoweredOn) light.intensity = 1.0; }, 100);
+                    setTimeout(() => { if (isPoweredOn) light.intensity = 0; }, 200);
+                    setTimeout(() => { if (isPoweredOn) light.intensity = 1.5; }, 400);
+                }
+            } else {
+                btn.style.background = '#333';
+                btn.style.boxShadow = 'none';
+                targetFanSpeed = 0;
+                if (light) light.intensity = 0;
+            }
+        }
+
+        function updateRGB(hexStr) {
+            customRGB = hexStr;
+            if (isPoweredOn) {
+                document.getElementById('power-btn').style.background = customRGB;
+                document.getElementById('power-btn').style.boxShadow = `0 0 15px ${customRGB}`;
+            }
+            const color = new THREE.Color(hexStr);
+            const light = scene.children.find(c => c.type === 'PointLight');
+            if (light) light.color.set(color);
+            fanMeshes.forEach(f => f.material.color.set(color));
+            if (aioTubesGroup) {
+                aioTubesGroup.children.forEach(c => c.material.color.set(color));
+            }
+        }
+
+        function updateFPS() {
+            const cpu = db.cpu.find(c => c.id === state.cpu);
+            const gpu = db.gpu.find(g => g.id === state.gpu);
+            let cp = "--"; let wz = "--"; let val = "--";
+            
+            if (cpu && cpu.id !== 'none' && gpu && gpu.id !== 'none') {
+                const cScore = cpu.score || 0;
+                const gScore = gpu.score || 0;
+                const combinedScore = (gScore * 0.7) + (cScore * 0.3);
+                cp = Math.floor(combinedScore / 400);
+                wz = Math.floor(combinedScore / 180);
+                val = Math.floor(combinedScore / 50);
+                if (cp > 120) cp = 120;
+                if (val > 800) val = 800;
+            }
+            
+            document.getElementById('fps-cp').innerText = cp !== "--" ? cp + " FPS" : "-- FPS";
+            document.getElementById('fps-wz').innerText = wz !== "--" ? wz + " FPS" : "-- FPS";
+            document.getElementById('fps-val').innerText = val !== "--" ? val + " FPS" : "-- FPS";
+        }
+
+        function update3D() {
+            if (!gpuMesh) return;
+            updateFPS();
+            
+            const gpu = db.gpu.find(g => g.id === state.gpu);
+            if (gpu && gpu.id !== 'none') {
+                gpuMesh.visible = true;
+                const targetScale = gpu.length ? (gpu.length / 340) : 1;
+                gpuMesh.scale.set(1, targetScale, targetScale); 
+            } else {
+                gpuMesh.visible = false;
+            }
+            
+            const mobo = db.mobo.find(m => m.id === state.mobo);
+            if (mobo && mobo.id !== 'none') moboMesh.visible = true;
+            else moboMesh.visible = false;
+
+            const cooler = db.cooling.find(c => c.id === state.cooling);
+            if (aioTubesGroup) {
+                pcGroup.remove(aioTubesGroup);
+                aioTubesGroup = null;
+            }
+            
+            if (cooler && cooler.id !== 'none' && cooler.is_aio) {
+                aioTubesGroup = new THREE.Group();
+                const curve1 = new THREE.CatmullRomCurve3([
+                    new THREE.Vector3(-4, 0, -2), new THREE.Vector3(2, 2, -2), new THREE.Vector3(6, 6, -4)
+                ]);
+                const geo1 = new THREE.TubeGeometry(curve1, 20, 0.4, 8, false);
+                const mat = new THREE.MeshPhysicalMaterial({ color: customRGB, transmission: 0.9, opacity: 1, transparent: true, roughness: 0.1 });
+                const tube1 = new THREE.Mesh(geo1, mat);
+                aioTubesGroup.add(tube1);
+                
+                const curve2 = new THREE.CatmullRomCurve3([
+                    new THREE.Vector3(-4, -1, -2), new THREE.Vector3(1, -2, -3), new THREE.Vector3(6, 4, -4)
+                ]);
+                const geo2 = new THREE.TubeGeometry(curve2, 20, 0.4, 8, false);
+                const tube2 = new THREE.Mesh(geo2, mat);
+                aioTubesGroup.add(tube2);
+                pcGroup.add(aioTubesGroup);
+            }
+        }
+
+</script>
 
 
     <div class="pd-modal-overlay" id="pd-modal">
