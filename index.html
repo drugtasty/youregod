@@ -1026,7 +1026,7 @@
                     const specs = item.socket ? `Socket: ${item.socket}` : (item.type ? `Type: ${item.type}` : '');
                     
                     const imgSrc = getComponentImage(item, currentSelectorCat);
-                    const imageHTML = imgSrc.startsWith('http') 
+                    let imageHTML = (imgSrc.startsWith('http') || imgSrc.startsWith('.'))
                         ? `<img src="${imgSrc}" alt="${item.name}">` 
                         : imgSrc;
                     
