@@ -1,25 +1,4 @@
-const dummyItem = { id: 'none', name: '-- Choose a Component --', price: 0, score: 0 
-    monitor: [
-        dummyItem,
-        { id: 'mon_aw3423dw', name: 'Alienware AW3423DW 34" 1440p 175Hz OLED', price: 999, resolution: '1440p', hz: '175Hz' , color: 'Black' },
-        { id: 'mon_g9', name: 'Samsung Odyssey G9 49" 1440p 240Hz OLED', price: 1299, resolution: '1440p', hz: '240Hz' , color: 'Black' },
-        { id: 'mon_neo_g8', name: 'Samsung Odyssey Neo G8 32" 4K 240Hz', price: 999, resolution: '4K', hz: '240Hz' , color: 'Black' },
-        { id: 'mon_27gr95qe', name: 'LG 27GR95QE-B 27" 1440p 240Hz OLED', price: 899, resolution: '1440p', hz: '240Hz' , color: 'Black' },
-        { id: 'mon_m27q', name: 'Gigabyte M27Q 27" 1440p 170Hz IPS', price: 269, resolution: '1440p', hz: '170Hz' , color: 'Black' },
-        { id: 'mon_vg249q', name: 'ASUS TUF VG249Q 24" 1080p 144Hz IPS', price: 159, resolution: '1080p', hz: '144Hz' , color: 'Black' },
-        { id: 'mon_xl2566k', name: 'BenQ ZOWIE XL2566K 24" 1080p 360Hz TN', price: 599, resolution: '1080p', hz: '360Hz' , color: 'Black' },
-        { id: 'mon_aw2524h', name: 'Alienware AW2524H 24" 1080p 500Hz IPS', price: 699, resolution: '1080p', hz: '500Hz' , color: 'Black' },
-        { id: 'mon_u2723qe', name: 'Dell UltraSharp U2723QE 27" 4K 60Hz IPS', price: 549, resolution: '4K', hz: '60Hz' , color: 'Black' },
-    ],
-    os: [
-        dummyItem,
-        { id: 'os_win11_home', name: 'Microsoft Windows 11 Home (USB)', price: 139 , color: 'Black' },
-        { id: 'os_win11_pro', name: 'Microsoft Windows 11 Pro (USB)', price: 199 , color: 'Black' },
-        { id: 'os_ubuntu', name: 'Ubuntu Linux 24.04 LTS (Free)', price: 0 , color: 'Black' },
-        { id: 'os_steamos', name: 'SteamOS (HoloISO)', price: 0 , color: 'Black' },
-    ],
-};
-
+const dummyItem = { id: 'none', name: '-- Choose a Component --', price: 0, score: 0 };
 
 const db = {
     cpu: [
@@ -408,8 +387,7 @@ const db = {
         { id: 'mon_lg27', name: 'LG 27GP850-B 27" 1440p 165Hz IPS', price: 300 , color: 'Black' },
         { id: 'mon_zowie', name: 'BenQ ZOWIE XL2566K 24.5" 1080p 360Hz', price: 599 , color: 'Black' },
         { id: 'mon_budget', name: 'AOC 24G2 24" 1080p 144Hz IPS', price: 130 , color: 'Black' }
-    ]
-
+    ],
     monitor: [
         dummyItem,
         { id: 'mon_aw3423dw', name: 'Alienware AW3423DW 34" 1440p 175Hz OLED', price: 999, resolution: '1440p', hz: '175Hz' , color: 'Black' },
