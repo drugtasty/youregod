@@ -311,7 +311,63 @@
         }
         .grid-add-btn::before { content: '+'; font-weight: bold; }
         .grid-add-btn:hover { background: #3f3f46; border-color: #555; }
+    
+        /* Part Details Modal */
+        .pd-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .pd-modal {
+            background: #121212; border: 1px solid #333; border-radius: 8px;
+            width: 90%; max-width: 1200px; height: 90vh; display: flex; flex-direction: column;
+            overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-family: 'Inter', sans-serif;
+        }
+        .pd-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;
+            border-bottom: 1px solid #222; font-weight: bold; font-size: 1.1rem;
+        }
+        .pd-close { cursor: pointer; color: #888; font-size: 1.2rem; }
+        .pd-close:hover { color: #fff; }
+        .pd-content {
+            display: flex; flex: 1; overflow-y: auto;
+        }
+        .pd-left {
+            width: 35%; border-right: 1px solid #222; padding: 20px;
+            display: flex; flex-direction: column; gap: 20px; overflow-y: auto;
+        }
+        .pd-right {
+            width: 65%; padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto;
+        }
+        .pd-image-box {
+            background: #fff; border-radius: 8px; padding: 20px; display: flex; justify-content: center;
+        }
+        .pd-image-box img { max-width: 100%; max-height: 350px; object-fit: contain; }
+        .pd-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; }
+        .pd-chips { display: flex; gap: 10px; margin-bottom: 20px; }
+        .pd-chip { background: #1a1a1a; border: 1px solid #333; padding: 10px; border-radius: 4px; flex: 1; text-align: center; }
+        .pd-chip-label { font-size: 0.75rem; color: #888; text-transform: uppercase; margin-bottom: 5px; }
+        .pd-chip-val { font-weight: bold; font-size: 0.9rem; }
+        .pd-price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .pd-price-val { font-size: 1.8rem; font-weight: bold; color: #4ade80; }
+        .pd-price-btns button { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 10px; }
+        .pd-btn-add { background: #333; color: white; border: 1px solid #555 !important; }
+        .pd-btn-add:hover { background: #444; }
+        .pd-btn-buy { background: #00a8ff; color: white; }
+        .pd-btn-buy:hover { background: #0097e6; }
+        .pd-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.9rem; }
+        .pd-table th { text-align: left; color: #888; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .pd-table td { padding: 15px 0; border-bottom: 1px solid #222; }
+        .pd-stock-in { color: #4ade80; background: rgba(74, 222, 128, 0.1); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;}
+        .pd-stock-out { color: #888; background: #222; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;}
+        .pd-chart-container { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 20px; flex: 1; min-height: 250px;}
+        .pd-specs-table { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.85rem; }
+        .pd-spec-item { border-bottom: 1px solid #222; padding-bottom: 10px; }
+        .pd-spec-label { color: #888; margin-bottom: 5px; border-bottom: 1px dotted #555; display: inline-block;}
+        .pd-spec-val { font-weight: bold; }
     </style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <!-- Snow Canvas Background -->
@@ -1516,6 +1572,171 @@
         updatePresetDropdown();
         updateTelemetry();
         if (window.innerWidth <= 900) document.getElementById('view-builder').style.display = 'grid'; 
+    
+        // --- Part Details Modal ---
+        let priceChartInstance = null;
+
+        function openPartDetails(itemId) {
+            const item = db[currentSelectorCat].find(i => i.id === itemId);
+            if (!item) return;
+
+            document.getElementById('pd-modal').style.display = 'flex';
+            document.getElementById('pd-title').innerText = item.name;
+            document.getElementById('pd-price').innerText = `$${item.price.toFixed(2)}`;
+            document.getElementById('pd-img').src = getComponentImage(currentSelectorCat, item.name);
+
+            // Setup Add to build button
+            document.getElementById('pd-btn-add').onclick = () => {
+                selectPart(item.id);
+                closePartDetails();
+            };
+
+            // Chips
+            let chipsHTML = '';
+            if (currentSelectorCat === 'cpu') {
+                chipsHTML = `
+                    <div class="pd-chip"><div class="pd-chip-label">Socket</div><div class="pd-chip-val">${item.socket || 'N/A'}</div></div>
+                    <div class="pd-chip"><div class="pd-chip-label">Cores</div><div class="pd-chip-val">${item.cores || 'N/A'}</div></div>
+                    <div class="pd-chip"><div class="pd-chip-label">TDP</div><div class="pd-chip-val">${item.price > 300 ? '125 W' : '65 W'}</div></div>
+                `;
+            } else if (currentSelectorCat === 'gpu') {
+                chipsHTML = `
+                    <div class="pd-chip"><div class="pd-chip-label">Chipset Manufacturer</div><div class="pd-chip-val">${extractBrand(item.name)}</div></div>
+                    <div class="pd-chip"><div class="pd-chip-label">Memory</div><div class="pd-chip-val">${item.vram || 'N/A'}</div></div>
+                    <div class="pd-chip"><div class="pd-chip-label">Core Clock</div><div class="pd-chip-val">2295 MHz</div></div>
+                `;
+            } else {
+                chipsHTML = `<div class="pd-chip"><div class="pd-chip-label">Brand</div><div class="pd-chip-val">${extractBrand(item.name)}</div></div>`;
+            }
+            document.getElementById('pd-chips').innerHTML = chipsHTML;
+
+            // Specs
+            let specsHTML = '';
+            for (let i = 0; i < 6; i++) {
+                const labels = ['Color', 'Length', 'Memory Type', 'Interface', 'TDP', 'Fans'];
+                const vals = ['Black/Silver', '304 mm', 'GDDR6X', 'PCIe 4.0 x16', '320 W', '3 Fans'];
+                specsHTML += `<div class="pd-spec-item"><div class="pd-spec-label">${labels[i]}</div><div class="pd-spec-val">${vals[i]}</div></div>`;
+            }
+            document.getElementById('pd-specs').innerHTML = specsHTML;
+
+            // Merchants
+            const merchantsHTML = `
+                <tr>
+                    <td style="color: #00a8ff; font-weight: bold;">Amazon</td>
+                    <td>FREE s/h</td>
+                    <td><span class="pd-stock-in">In stock</span></td>
+                    <td style="color: #4ade80; font-weight: bold;">$${item.price.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td style="color: #f1c40f; font-weight: bold;">Best Buy</td>
+                    <td>FREE s/h</td>
+                    <td><span class="pd-stock-out">Out of stock</span></td>
+                    <td style="color: #4ade80; font-weight: bold;">$${(item.price * 1.05).toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td style="color: #3498db; font-weight: bold;">Newegg</td>
+                    <td>$5.99 s/h</td>
+                    <td><span class="pd-stock-in">In stock</span></td>
+                    <td style="color: #4ade80; font-weight: bold;">$${(item.price * 0.98).toFixed(2)}</td>
+                </tr>
+            `;
+            document.getElementById('pd-merchants').innerHTML = merchantsHTML;
+
+            // Chart
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            if (priceChartInstance) priceChartInstance.destroy();
+            
+            // Generate some fake price history data
+            const labels = ['May 3', 'May 17', 'May 31', 'Jun 14', 'Jun 28', 'Jul 12', 'Jul 26'];
+            const data1 = labels.map(() => item.price + (Math.random() * 50 - 25));
+            const data2 = labels.map(() => item.price * 1.05 + (Math.random() * 30 - 15));
+
+            priceChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Amazon', data: data1, borderColor: '#00a8ff', tension: 0.1, fill: false },
+                        { label: 'Best Buy', data: data2, borderColor: '#f1c40f', tension: 0.1, fill: false }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: '#333' } },
+                        x: { grid: { color: '#333' } }
+                    }
+                }
+            });
+        }
+
+        function closePartDetails() {
+            document.getElementById('pd-modal').style.display = 'none';
+        }
+        
+        // Allow closing modal by clicking outside
+        document.getElementById('pd-modal').addEventListener('click', function(e) {
+            if (e.target === this) closePartDetails();
+        });
     </script>
+
+
+    <div class="pd-modal-overlay" id="pd-modal">
+        <div class="pd-modal">
+            <div class="pd-header">
+                <div>Part Details</div>
+                <div class="pd-close" onclick="closePartDetails()">✕</div>
+            </div>
+            <div class="pd-content">
+                <div class="pd-left">
+                    <div class="pd-image-box">
+                        <img id="pd-img" src="" alt="Component">
+                    </div>
+                    <div style="font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 10px;">GENERAL SPECIFICATIONS</div>
+                    <div class="pd-specs-table" id="pd-specs">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+                <div class="pd-right">
+                    <div class="pd-title" id="pd-title">Component Name</div>
+                    <div class="pd-chips" id="pd-chips">
+                        <!-- Injected dynamically -->
+                    </div>
+                    <div class="pd-price-row">
+                        <div>
+                            <div style="color: #888; font-size: 0.8rem;">Best Price</div>
+                            <div class="pd-price-val" id="pd-price">$0.00</div>
+                        </div>
+                        <div class="pd-price-btns">
+                            <button class="pd-btn-add" id="pd-btn-add" onclick="">+ Add to Build</button>
+                            <button class="pd-btn-buy">🛒 Buy Now</button>
+                        </div>
+                    </div>
+                    <table class="pd-table">
+                        <thead>
+                            <tr>
+                                <th>MERCHANT</th>
+                                <th>SHIPPING</th>
+                                <th>AVAILABILITY</th>
+                                <th>TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pd-merchants">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                    <div class="pd-chart-container">
+                        <div style="font-weight: bold; margin-bottom: 15px;">Price History</div>
+                        <div style="height: 200px; position: relative;">
+                            <canvas id="priceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
+
 </html>
