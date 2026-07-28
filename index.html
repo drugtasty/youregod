@@ -764,30 +764,61 @@
             
             const n = item.name.toLowerCase();
             
-            if (n.includes('amd ryzen')) return 'https://loremflickr.com/400/400/amd,ryzen,cpu/all';
-            if (n.includes('intel core')) return 'https://loremflickr.com/400/400/intel,cpu,processor/all';
-            if (n.includes('rtx')) return 'https://loremflickr.com/400/400/nvidia,rtx,gpu/all';
-            if (n.includes('radeon')) return 'https://loremflickr.com/400/400/amd,radeon,gpu/all';
-            
-            if (catKey === 'mobo') {
-                if (n.includes('asus')) return 'https://loremflickr.com/400/400/asus,motherboard/all';
-                if (n.includes('msi') || n.includes('gigabyte')) return 'https://loremflickr.com/400/400/msi,motherboard/all';
-                return 'https://loremflickr.com/400/400/computer,motherboard/all';
-            }
-            
-            if (catKey === 'ram') return 'https://loremflickr.com/400/400/corsair,ram,memory/all';
-            if (catKey === 'storage') return 'https://loremflickr.com/400/400/ssd,nvme,storage/all';
-            if (catKey === 'psu') return 'https://loremflickr.com/400/400/computer,psu,power/all';
-            if (catKey === 'case') return 'https://loremflickr.com/400/400/computer,case,pc/all';
-            if (catKey === 'cooling') {
-                if (n.includes('noctua') || n.includes('thermalright') || n.includes('deepcool')) return 'https://loremflickr.com/400/400/noctua,cooler,cpu/all';
-                return 'https://loremflickr.com/400/400/corsair,aio,cooler/all';
-            }
-            
-            const icons = {
-                cpu: '⚙️', gpu: '🎮', mobo: '🖥️', ram: '🎫', storage: '💾', cooling: '❄️', psu: '⚡', case: '📦', fans: '🌀', accessories: '🛠️', monitor: '📺'
+            const amazonImages = {
+                cpu_amd: 'https://images-na.ssl-images-amazon.com/images/P/B0D6NNRBGP.01.MAIN._SCRM_.jpg',
+                cpu_intel: 'https://images-na.ssl-images-amazon.com/images/P/B0BG6Q152D.01.MAIN._SCRM_.jpg',
+                gpu_nvidia: 'https://images-na.ssl-images-amazon.com/images/P/B0BGP8FGFX.01.MAIN._SCRM_.jpg',
+                gpu_amd: 'https://images-na.ssl-images-amazon.com/images/P/B0BR6L7TKR.01.MAIN._SCRM_.jpg',
+                mobo_asus: 'https://images-na.ssl-images-amazon.com/images/P/B0BQD58D96.01.MAIN._SCRM_.jpg',
+                mobo_msi: 'https://m.media-amazon.com/images/I/81-3FfpcwML._AC_SL1500_.jpg',
+                mobo_gigabyte: 'https://images-na.ssl-images-amazon.com/images/P/B0BHHTHQN2.01.MAIN._SCRM_.jpg',
+                ram_corsair: 'https://images-na.ssl-images-amazon.com/images/P/B0C39HXDF9.01.MAIN._SCRM_.jpg',
+                ram_gskill: 'https://images-na.ssl-images-amazon.com/images/P/B09PTG86F8.01.MAIN._SCRM_.jpg',
+                storage_samsung: 'https://images-na.ssl-images-amazon.com/images/P/B0BHJTJZZV.01.MAIN._SCRM_.jpg',
+                storage_wd: 'https://images-na.ssl-images-amazon.com/images/P/B08KZNVKPN.01.MAIN._SCRM_.jpg',
+                psu_corsair: 'https://images-na.ssl-images-amazon.com/images/P/B08R5PH1VY.01.MAIN._SCRM_.jpg',
+                psu_seasonic: 'https://images-na.ssl-images-amazon.com/images/P/B07WGNSN5L.01.MAIN._SCRM_.jpg',
+                case_corsair: 'https://images-na.ssl-images-amazon.com/images/P/B08C7BGV3D.01.MAIN._SCRM_.jpg',
+                case_nzxt: 'https://m.media-amazon.com/images/I/713NuIfbhZL._AC_SL1500_.jpg',
+                case_lianli: 'https://images-na.ssl-images-amazon.com/images/P/B09S5W8Y9D.01.MAIN._SCRM_.jpg',
+                cooling_noctua: 'https://images-na.ssl-images-amazon.com/images/P/B00L7UZMAK.01.MAIN._SCRM_.jpg',
+                cooling_corsair: 'https://images-na.ssl-images-amazon.com/images/P/B09B1Y1C4G.01.MAIN._SCRM_.jpg',
+                cooling_nzxt: 'https://images-na.ssl-images-amazon.com/images/P/B0B6Y15C5Y.01.MAIN._SCRM_.jpg'
             };
-            return icons[catKey] || '📦';
+
+            if (catKey === 'cpu') return n.includes('amd') ? amazonImages.cpu_amd : amazonImages.cpu_intel;
+            if (catKey === 'gpu') return n.includes('radeon') || n.includes('amd') ? amazonImages.gpu_amd : amazonImages.gpu_nvidia;
+            if (catKey === 'mobo' || catKey === 'motherboard') {
+                if (n.includes('asus') || n.includes('rog')) return amazonImages.mobo_asus;
+                if (n.includes('gigabyte') || n.includes('aorus')) return amazonImages.mobo_gigabyte;
+                return amazonImages.mobo_msi;
+            }
+            if (catKey === 'ram' || catKey === 'memory') {
+                if (n.includes('corsair')) return amazonImages.ram_corsair;
+                return amazonImages.ram_gskill;
+            }
+            if (catKey === 'storage') {
+                if (n.includes('samsung')) return amazonImages.storage_samsung;
+                return amazonImages.storage_wd;
+            }
+            if (catKey === 'psu') {
+                if (n.includes('seasonic')) return amazonImages.psu_seasonic;
+                return amazonImages.psu_corsair;
+            }
+            if (catKey === 'case') {
+                if (n.includes('nzxt')) return amazonImages.case_nzxt;
+                if (n.includes('lian li') || n.includes('lianli')) return amazonImages.case_lianli;
+                return amazonImages.case_corsair;
+            }
+            if (catKey === 'cooling') {
+                if (n.includes('noctua') || n.includes('thermalright') || n.includes('deepcool')) return amazonImages.cooling_noctua;
+                if (n.includes('nzxt')) return amazonImages.cooling_nzxt;
+                return amazonImages.cooling_corsair;
+            }
+            if (catKey === 'monitor') return 'https://images-na.ssl-images-amazon.com/images/P/B0C4MLN8P8.01.MAIN._SCRM_.jpg'; // Generic monitor
+
+            // Default fallback
+            return amazonImages.case_corsair;
         }
 
         function extractBrand(name) {
