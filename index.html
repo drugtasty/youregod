@@ -1633,8 +1633,30 @@
             radarChart.update();
         }
 
+
+        function initFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            let hasLoaded = false;
+            categories.forEach(cat => {
+                if (params.has(cat.key)) {
+                    const id = params.get(cat.key);
+                    if (db[cat.key] && db[cat.key].some(i => i.id === id)) {
+                        state[cat.key] = id;
+                        hasLoaded = true;
+                    }
+                }
+                if (params.has(`qty_${cat.key}`)) {
+                    qtyState[cat.key] = parseInt(params.get(`qty_${cat.key}`)) || 1;
+                }
+            });
+            if (hasLoaded) {
+                document.getElementById('pc-preset-selector').value = 'custom';
+            }
+        }
+
         // --- Init ---
         initUI();
+        initFromURL();
         initChart();
         updatePresetDropdown();
         updateTelemetry();
