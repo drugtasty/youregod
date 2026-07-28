@@ -200,7 +200,13 @@
         .progress-track { width: 100%; height: 4px; background-color: var(--border-color); border-radius: 2px; margin-top: 15px; overflow: hidden; }
         .progress-fill { height: 100%; background-color: var(--accent); width: 0%; transition: width 0.5s ease-out; }
 
-        /* FPS Grid */
+        
+          /* Hardware Gallery */
+          .build-gallery { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border-color); }
+          .gallery-item { width: 120px; height: 120px; background: #0a0a0a; border: 1px solid #222; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+          .gallery-item img { max-width: 90%; max-height: 70%; object-fit: contain; }
+          .gallery-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.8); color: #888; font-size: 0.65rem; text-align: center; padding: 3px 0; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;}
+/* FPS Grid */
         .fps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
         .fps-card { background-color: #000; border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
         .fps-res { font-size: 0.65rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
@@ -400,7 +406,7 @@
         }
     
         
-        .grid-layout { display: grid; grid-template-columns: minmax(220px, 1.2fr) minmax(400px, 2fr) minmax(220px, 1fr); gap: 8px; height: 100%; min-height: 80vh; }
+        .grid-layout { display: grid; grid-template-columns: minmax(320px, 1fr) minmax(600px, 2.5fr); gap: 16px; height: 100%; min-height: 80vh; }
         
         @media (max-width: 900px) { 
             .grid-layout { grid-template-columns: 1fr; height: auto; } 
@@ -557,39 +563,14 @@
                 </div>
             </div>
 
-            <!-- Telemetry Panel -->
-            <div class="panel" id="canvas-panel" style="padding: 0; position: relative; background: #050505; border: 1px solid var(--border-color); overflow: hidden;">
-                <div id="canvas-container" style="width: 100%; height: 100%;">
-                    
-                </div>
-                
-                <div id="immersion-hud" style="position: absolute; top: 20px; left: 20px; z-index: 20; color: #fff; pointer-events: none;">
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #aaa; margin-bottom: 5px;">HOLOGRAPHIC HUD // ONLINE</div>
-                    <div id="hud-cpu" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 2px;">CPU: N/A</div>
-                    <div id="hud-gpu" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">GPU: N/A</div>
-                    <div id="hud-ram" style="font-size: 0.85rem; color: #888;">MEM: N/A</div>
-                </div>
 
-                <div id="immersion-controls" style="position: absolute; bottom: 20px; right: 20px; z-index: 20; display: flex; flex-direction: column; gap: 10px; align-items: flex-end;">
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #aaa; margin-bottom: 5px; text-align: right;">RGB STUDIO CONTROLS</div>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="color" id="rgb-picker" value="#ff4444" style="background: transparent; border: 1px solid var(--border-color); cursor: pointer; height: 35px; width: 50px; border-radius: 4px;" onchange="updateRGB(this.value)">
-                        <button class="buy-btn" style="background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border-color); color: #fff; height: 35px;" onclick="updateRGB('#ffffff')">WHITE</button>
-                        <button class="buy-btn" style="background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border-color); color: #fff; height: 35px;" onclick="updateRGB('#000000')">STEALTH</button>
-                    </div>
-                    <button id="power-btn" onclick="togglePower()" style="width: 80px; height: 80px; border-radius: 50%; background: #ff4444; border: 4px solid #111; color: #fff; font-weight: bold; font-family: 'JetBrains Mono', monospace; cursor: pointer; box-shadow: 0 0 15px #ff4444; transition: all 0.3s; margin-top: 10px; display: flex; align-items: center; justify-content: center;">
-                        <div style="border: 2px solid #fff; border-top: none; width: 30px; height: 30px; border-radius: 50%; position: relative;">
-                            <div style="position: absolute; top: -15px; left: 13px; width: 2px; height: 20px; background: #fff;"></div>
-                        </div>
-                    </button>
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #888; margin-top: -5px; text-align: center; width: 80px;">POWER</div>
-                </div>
-            </div>
             <div class="panel">
                 <div class="panel-header">
                     <span>Performance Analytics</span>
                     <span id="display-price" style="color: var(--accent);">$0</span>
                 </div>
+                
+                <div id="build-gallery" class="build-gallery"></div>
                 
                 <div class="stat-block">
                     <div class="stat-label">System Balance Analysis</div>
@@ -815,7 +796,33 @@
                 aiInterventionMessage = "";
                 refreshBuilderDisplay();
                 updateTelemetry();
-            if(typeof update3D === 'function') update3D();
+            // Update Hardware Gallery
+            const gallery = document.getElementById('build-gallery');
+            let galleryHTML = '';
+            
+            const categoriesToDisplay = [
+                { key: 'case', label: 'Case' },
+                { key: 'mobo', label: 'Motherboard' },
+                { key: 'cpu', label: 'CPU' },
+                { key: 'cooling', label: 'Cooler' },
+                { key: 'ram', label: 'Memory' },
+                { key: 'gpu', label: 'Graphics Card' },
+                { key: 'storage', label: 'Storage' },
+                { key: 'psu', label: 'Power Supply' }
+            ];
+
+            categoriesToDisplay.forEach(cat => {
+                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
+                if (item && item.id !== 'none' && item.img) {
+                    galleryHTML += `
+                        <div class="gallery-item" title="${item.name}">
+                            <img src="${item.img}" alt="${item.name}">
+                            <div class="gallery-label">${cat.label}</div>
+                        </div>
+                    `;
+                }
+            });
+            gallery.innerHTML = galleryHTML;
             }
         }
 
@@ -909,7 +916,33 @@
             document.getElementById('custom-modal').style.display = 'none';
             initUI(); 
             updateTelemetry();
-            if(typeof update3D === 'function') update3D();
+            // Update Hardware Gallery
+            const gallery = document.getElementById('build-gallery');
+            let galleryHTML = '';
+            
+            const categoriesToDisplay = [
+                { key: 'case', label: 'Case' },
+                { key: 'mobo', label: 'Motherboard' },
+                { key: 'cpu', label: 'CPU' },
+                { key: 'cooling', label: 'Cooler' },
+                { key: 'ram', label: 'Memory' },
+                { key: 'gpu', label: 'Graphics Card' },
+                { key: 'storage', label: 'Storage' },
+                { key: 'psu', label: 'Power Supply' }
+            ];
+
+            categoriesToDisplay.forEach(cat => {
+                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
+                if (item && item.id !== 'none' && item.img) {
+                    galleryHTML += `
+                        <div class="gallery-item" title="${item.name}">
+                            <img src="${item.img}" alt="${item.name}">
+                            <div class="gallery-label">${cat.label}</div>
+                        </div>
+                    `;
+                }
+            });
+            gallery.innerHTML = galleryHTML;
         }
 
         function setFilter(catKey, filterId) {
@@ -1304,7 +1337,33 @@
             resolveConflicts();
             refreshBuilderDisplay();
             updateTelemetry();
-            if(typeof update3D === 'function') update3D();
+            // Update Hardware Gallery
+            const gallery = document.getElementById('build-gallery');
+            let galleryHTML = '';
+            
+            const categoriesToDisplay = [
+                { key: 'case', label: 'Case' },
+                { key: 'mobo', label: 'Motherboard' },
+                { key: 'cpu', label: 'CPU' },
+                { key: 'cooling', label: 'Cooler' },
+                { key: 'ram', label: 'Memory' },
+                { key: 'gpu', label: 'Graphics Card' },
+                { key: 'storage', label: 'Storage' },
+                { key: 'psu', label: 'Power Supply' }
+            ];
+
+            categoriesToDisplay.forEach(cat => {
+                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
+                if (item && item.id !== 'none' && item.img) {
+                    galleryHTML += `
+                        <div class="gallery-item" title="${item.name}">
+                            <img src="${item.img}" alt="${item.name}">
+                            <div class="gallery-label">${cat.label}</div>
+                        </div>
+                    `;
+                }
+            });
+            gallery.innerHTML = galleryHTML;
         }
 
         function handleQtyChange(categoryKey) {
@@ -1316,7 +1375,33 @@
                 qtyState[categoryKey] = qty;
             }
             updateTelemetry();
-            if(typeof update3D === 'function') update3D();
+            // Update Hardware Gallery
+            const gallery = document.getElementById('build-gallery');
+            let galleryHTML = '';
+            
+            const categoriesToDisplay = [
+                { key: 'case', label: 'Case' },
+                { key: 'mobo', label: 'Motherboard' },
+                { key: 'cpu', label: 'CPU' },
+                { key: 'cooling', label: 'Cooler' },
+                { key: 'ram', label: 'Memory' },
+                { key: 'gpu', label: 'Graphics Card' },
+                { key: 'storage', label: 'Storage' },
+                { key: 'psu', label: 'Power Supply' }
+            ];
+
+            categoriesToDisplay.forEach(cat => {
+                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
+                if (item && item.id !== 'none' && item.img) {
+                    galleryHTML += `
+                        <div class="gallery-item" title="${item.name}">
+                            <img src="${item.img}" alt="${item.name}">
+                            <div class="gallery-label">${cat.label}</div>
+                        </div>
+                    `;
+                }
+            });
+            gallery.innerHTML = galleryHTML;
         }
 
         function checkThermalPaste() {
@@ -1351,8 +1436,9 @@
             
             // Render Retailers
             const query = encodeURIComponent(item.name);
+            const amazonUrl = item.amazon_url ? item.amazon_url : `https://www.amazon.com/s?k=${query}`;
             document.getElementById('retailer-links').innerHTML = `
-                <a href="https://www.amazon.com/s?k=${query}" target="_blank" class="nav-btn" style="text-decoration:none; flex:1; text-align:center; background:#ff9900; color:#000;">Amazon</a>
+                <a href="${amazonUrl}" target="_blank" class="nav-btn" style="text-decoration:none; flex:1; text-align:center; background:#ff9900; color:#000;">Amazon</a>
                 <a href="https://www.newegg.com/p/pl?d=${query}" target="_blank" class="nav-btn" style="text-decoration:none; flex:1; text-align:center; background:#005cff; color:#fff;">Newegg</a>
                 <a href="https://www.bestbuy.com/site/searchpage.jsp?st=${query}" target="_blank" class="nav-btn" style="text-decoration:none; flex:1; text-align:center; background:#0046be; color:#fff;">BestBuy</a>
             `;
@@ -1902,7 +1988,33 @@
             if(typeof init3D === 'function') init3D();
             updatePresetDropdown();
             updateTelemetry();
-            if(typeof update3D === 'function') update3D();
+            // Update Hardware Gallery
+            const gallery = document.getElementById('build-gallery');
+            let galleryHTML = '';
+            
+            const categoriesToDisplay = [
+                { key: 'case', label: 'Case' },
+                { key: 'mobo', label: 'Motherboard' },
+                { key: 'cpu', label: 'CPU' },
+                { key: 'cooling', label: 'Cooler' },
+                { key: 'ram', label: 'Memory' },
+                { key: 'gpu', label: 'Graphics Card' },
+                { key: 'storage', label: 'Storage' },
+                { key: 'psu', label: 'Power Supply' }
+            ];
+
+            categoriesToDisplay.forEach(cat => {
+                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
+                if (item && item.id !== 'none' && item.img) {
+                    galleryHTML += `
+                        <div class="gallery-item" title="${item.name}">
+                            <img src="${item.img}" alt="${item.name}">
+                            <div class="gallery-label">${cat.label}</div>
+                        </div>
+                    `;
+                }
+            });
+            gallery.innerHTML = galleryHTML;
             if (window.innerWidth <= 900) document.getElementById('view-builder').style.display = 'grid'; 
         });
     
@@ -2091,136 +2203,7 @@
         // -----------------------------------------
         // 3D ENGINE & IMMERSION LOGIC (Sketchfab Showcase)
         // -----------------------------------------
-        var api;
-        var isPoweredOn = true;
-        var rgbMaterials = [];
-        var lastSelectedCategory = 'gpu';
-        var currentSketchfabId = null;
-
-        function loadSketchfabModel(uid) {
-            if (uid === currentSketchfabId) return;
-            const container = document.getElementById('canvas-container');
-            if (!container) return;
-            
-            // Recreate iframe to cleanly load new model
-            container.innerHTML = '<iframe src="" id="api-frame" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" style="width:100%; height:100%; border:0;"></iframe>';
-            var iframe = document.getElementById('api-frame');
-            
-            var client = new Sketchfab('1.12.1', iframe);
-            client.init(uid, {
-                success: function onSuccess(apiInstance) {
-                    api = apiInstance;
-                    api.start();
-                    api.addEventListener('viewerready', function() {
-                        rgbMaterials = [];
-                        api.getMaterialList(function(err, materials) {
-                            if(!err) {
-                                materials.forEach(mat => {
-                                    if(mat.name.toLowerCase().includes('led') || mat.name.toLowerCase().includes('rgb') || mat.name.toLowerCase().includes('light') || mat.name.toLowerCase().includes('emission')) {
-                                        rgbMaterials.push(mat);
-                                    }
-                                });
-                                // apply current custom RGB
-                                if(customRGB) updateRGB(customRGB);
-                            }
-                        });
-                    });
-                },
-                error: function onError() {
-                    console.log('Sketchfab Viewer error');
-                },
-                ui_infos: 0,
-                ui_controls: 1,
-                ui_inspector: 0,
-                ui_watermark: 0,
-                transparent: 1,
-                autostart: 1
-            });
-            currentSketchfabId = uid;
-        }
-
-        function init3D() {
-            update3D(); // Will trigger loadSketchfabModel with the current GPU
-        }
-
-        function update3D() {
-            // Find the item for the last selected category
-            let item = null;
-            if (lastSelectedCategory && state[lastSelectedCategory]) {
-                item = getDBArray(lastSelectedCategory).find(i => i.id === state[lastSelectedCategory]);
-            }
-            
-            // If no valid sketchfab id for the selected category, fallback to GPU
-            if (!item || !item.sketchfab_id) {
-                item = getDBArray('gpu').find(i => i.id === state['gpu']);
-            }
-            
-            if (item && item.sketchfab_id) {
-                loadSketchfabModel(item.sketchfab_id);
-            }
-
-            // Update HUD
-            const cpu = db.cpu.find(c => c.id === state.cpu);
-            const gpu = db.gpu.find(g => g.id === state.gpu);
-            const ram = db.ram.find(r => r.id === state.ram);
-
-            document.getElementById('hud-cpu').innerText = `CPU: ${cpu && cpu.id !== 'none' ? cpu.name : 'N/A'}`;
-            document.getElementById('hud-gpu').innerText = `GPU: ${gpu && gpu.id !== 'none' ? gpu.name : 'N/A'}`;
-            document.getElementById('hud-ram').innerText = `MEM: ${ram && ram.id !== 'none' ? ram.name : 'N/A'}`;
-        }
-
-        function togglePower() {
-            isPoweredOn = !isPoweredOn;
-            const btn = document.getElementById('power-btn');
-            if (isPoweredOn) {
-                btn.style.background = '#ff4444';
-                btn.style.boxShadow = `0 0 15px #ff4444`;
-                if(api && rgbMaterials.length > 0) {
-                    rgbMaterials.forEach(mat => {
-                        if(mat.channels.EmitColor) {
-                            mat.channels.EmitColor.enable = true;
-                            mat.channels.EmitColor.factor = 1.0;
-                            api.setMaterial(mat);
-                        }
-                    });
-                }
-            } else {
-                btn.style.background = '#333';
-                btn.style.boxShadow = 'none';
-                if(api && rgbMaterials.length > 0) {
-                    rgbMaterials.forEach(mat => {
-                        if(mat.channels.EmitColor) {
-                            mat.channels.EmitColor.enable = false;
-                            api.setMaterial(mat);
-                        }
-                    });
-                }
-            }
-        }
-
-        function updateRGB(hexStr) {
-            document.getElementById('rgb-picker').value = hexStr;
-            const btn = document.getElementById('power-btn');
-            if (isPoweredOn) {
-                btn.style.background = hexStr;
-                btn.style.boxShadow = `0 0 15px ${hexStr}`;
-            }
-            if(api && rgbMaterials.length > 0) {
-                rgbMaterials.forEach(mat => {
-                    if(mat.channels.EmitColor) {
-                        const r = parseInt(hexStr.substr(1,2), 16) / 255;
-                        const g = parseInt(hexStr.substr(3,2), 16) / 255;
-                        const b = parseInt(hexStr.substr(5,2), 16) / 255;
-                        mat.channels.EmitColor.color = [r, g, b];
-                        if (isPoweredOn) {
-                            mat.channels.EmitColor.enable = true;
-                        }
-                        api.setMaterial(mat);
-                    }
-                });
-            }
-            customRGB = hexStr;
-        }
+        
 </script>
 
 
