@@ -1327,11 +1327,11 @@
             }
             document.getElementById('spec-details').innerHTML = html;
             
-            // Render Retailers
             const query = encodeURIComponent(item.name);
             const amazonUrl = item.amazon_url ? item.amazon_url : `https://www.amazon.com/s?k=${query}`;
+            const amazonLabel = item.amazon_url ? '🛒 Buy on Amazon' : '🔍 Search Amazon';
             document.getElementById('retailer-links').innerHTML = `
-                <a href="${amazonUrl}" target="_blank" class="nav-btn" style="text-decoration:none; flex:1; text-align:center; background:#ff9900; color:#000;">Amazon</a>
+                <a href="${amazonUrl}" target="_blank" class="nav-btn" style="text-decoration:none; flex:2; text-align:center; background:#ff9900; color:#000; font-weight:700; font-size:0.9rem;">${amazonLabel}</a>
                 <a href="https://www.newegg.com/p/pl?d=${query}" target="_blank" class="nav-btn" style="text-decoration:none; flex:1; text-align:center; background:#005cff; color:#fff;">Newegg</a>
                 <a href="https://www.bestbuy.com/site/searchpage.jsp?st=${query}" target="_blank" class="nav-btn" style="text-decoration:none; flex:1; text-align:center; background:#0046be; color:#fff;">BestBuy</a>
             `;
