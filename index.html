@@ -770,22 +770,16 @@
             
             const amazonImages = {
                 // AMD Ryzen
-                cpu_amd_9950x: 'https://images-na.ssl-images-amazon.com/images/P/B0D6NNRBGP.01.MAIN._SCRM_.jpg',
-                cpu_amd_7950x: 'https://images-na.ssl-images-amazon.com/images/P/B0BBHD5D8Y.01.MAIN._SCRM_.jpg',
-                cpu_amd_7800x: 'https://images-na.ssl-images-amazon.com/images/P/B0BTZB7F88.01.MAIN._SCRM_.jpg',
-                cpu_amd_7600x: 'https://images-na.ssl-images-amazon.com/images/P/B0BTZB7F88.01.MAIN._SCRM_.jpg',
-                cpu_amd_5950x: 'https://images-na.ssl-images-amazon.com/images/P/B0815Y8J9N.01.MAIN._SCRM_.jpg',
-                cpu_amd_5800x: 'https://images-na.ssl-images-amazon.com/images/P/B0815XFSGK.01.MAIN._SCRM_.jpg',
-                cpu_amd_5600x: 'https://images-na.ssl-images-amazon.com/images/P/B08166SLDF.01.MAIN._SCRM_.jpg',
+                cpu_amd_r9: 'https://images-na.ssl-images-amazon.com/images/P/B0D6NNRBGP.01.MAIN._SCRM_.jpg',
+                cpu_amd_r7: 'https://images-na.ssl-images-amazon.com/images/P/B0BTZB7F88.01.MAIN._SCRM_.jpg',
+                cpu_amd_r5: 'https://images-na.ssl-images-amazon.com/images/P/B08166SLDF.01.MAIN._SCRM_.jpg',
+                cpu_amd_r3: 'https://images-na.ssl-images-amazon.com/images/P/B0876Y2TMZ.01.MAIN._SCRM_.jpg',
                 
-                // Intel 14th Gen
-                cpu_intel_14900k: 'https://images-na.ssl-images-amazon.com/images/P/B0CGJ41C9W.01.MAIN._SCRM_.jpg',
-                cpu_intel_14700k: 'https://images-na.ssl-images-amazon.com/images/P/B0BCF57FL5.01.MAIN._SCRM_.jpg',
-                cpu_intel_14600k: 'https://images-na.ssl-images-amazon.com/images/P/B0CHBGVFHP.01.MAIN._SCRM_.jpg',
-                cpu_intel_13900k: 'https://images-na.ssl-images-amazon.com/images/P/B0BCF54SR1.01.MAIN._SCRM_.jpg',
-                cpu_intel_13700k: 'https://images-na.ssl-images-amazon.com/images/P/B0BCF57FL5.01.MAIN._SCRM_.jpg',
-                cpu_intel_13600k: 'https://images-na.ssl-images-amazon.com/images/P/B0CHBGVFHP.01.MAIN._SCRM_.jpg',
-                cpu_intel_generic: 'https://images-na.ssl-images-amazon.com/images/P/B0CHBGVFHP.01.MAIN._SCRM_.jpg',
+                // Intel Core
+                cpu_intel_i9: 'https://images-na.ssl-images-amazon.com/images/P/B0BCF54SR1.01.MAIN._SCRM_.jpg',
+                cpu_intel_i7: 'https://images-na.ssl-images-amazon.com/images/P/B0BCF57FL5.01.MAIN._SCRM_.jpg',
+                cpu_intel_i5: 'https://images-na.ssl-images-amazon.com/images/P/B0CHBGVFHP.01.MAIN._SCRM_.jpg',
+                cpu_intel_i3: 'https://images-na.ssl-images-amazon.com/images/P/B07R7Q3JZH.01.MAIN._SCRM_.jpg',
                 
                 gpu_nvidia: 'https://images-na.ssl-images-amazon.com/images/P/B08HR3Y5GQ.01.MAIN._SCRM_.jpg',
                 gpu_amd: 'https://images-na.ssl-images-amazon.com/images/P/B0BR6L7TKR.01.MAIN._SCRM_.jpg',
@@ -808,26 +802,15 @@
 
             if (catKey === 'cpu') {
                 if (n.includes('amd') || n.includes('ryzen')) {
-                    // Just use the 9950X box for all 9000 series since it works perfectly and is identical
-                    if (n.includes('9950') || n.includes('9900') || n.includes('9700') || n.includes('9600')) return amazonImages.cpu_amd_9950x;
-                    
-                    if (n.includes('7950') || n.includes('7900')) return amazonImages.cpu_amd_7950x;
-                    if (n.includes('9800') || n.includes('7800') || n.includes('7700')) return amazonImages.cpu_amd_7800x;
-                    if (n.includes('7600')) return amazonImages.cpu_amd_7600x;
-                    
-                    if (n.includes('5950') || n.includes('5900')) return amazonImages.cpu_amd_5950x;
-                    if (n.includes('5800') || n.includes('5700')) return amazonImages.cpu_amd_5800x;
-                    return amazonImages.cpu_amd_5600x;
+                    if (n.includes('ryzen 9') || n.includes('9950') || n.includes('9900') || n.includes('7950') || n.includes('7900') || n.includes('5950') || n.includes('5900') || n.includes('3950') || n.includes('3900')) return amazonImages.cpu_amd_r9;
+                    if (n.includes('ryzen 7') || n.includes('9800') || n.includes('9700') || n.includes('7800') || n.includes('7700') || n.includes('5800') || n.includes('5700') || n.includes('3800') || n.includes('3700')) return amazonImages.cpu_amd_r7;
+                    if (n.includes('ryzen 3') || n.includes('3300') || n.includes('3100')) return amazonImages.cpu_amd_r3;
+                    return amazonImages.cpu_amd_r5; // Default to Ryzen 5
                 } else {
-                    if (n.includes('14900') || n.includes('285k')) return amazonImages.cpu_intel_14900k;
-                    if (n.includes('14700') || n.includes('265k')) return amazonImages.cpu_intel_14700k;
-                    // Map 14th/13th/12th gen i5 to the working 14600k ASIN to prevent 1x1 pixel blank boxes
-                    if (n.includes('14600') || n.includes('13600') || n.includes('12600') || n.includes('245k')) return amazonImages.cpu_intel_14600k;
-                    
-                    if (n.includes('13900') || n.includes('12900')) return amazonImages.cpu_intel_13900k;
-                    if (n.includes('13700') || n.includes('12700')) return amazonImages.cpu_intel_13700k;
-                    if (n.includes('13400') || n.includes('12400')) return amazonImages.cpu_intel_14600k;
-                    return amazonImages.cpu_intel_generic;
+                    if (n.includes('core i9') || n.includes('ultra 9') || n.includes('14900') || n.includes('13900') || n.includes('12900') || n.includes('11900') || n.includes('10900') || n.includes('285k')) return amazonImages.cpu_intel_i9;
+                    if (n.includes('core i7') || n.includes('ultra 7') || n.includes('14700') || n.includes('13700') || n.includes('12700') || n.includes('11700') || n.includes('10700') || n.includes('265k')) return amazonImages.cpu_intel_i7;
+                    if (n.includes('core i3') || n.includes('14100') || n.includes('13100') || n.includes('12100') || n.includes('10100')) return amazonImages.cpu_intel_i3;
+                    return amazonImages.cpu_intel_i5; // Default to Core i5
                 }
             }
             if (catKey === 'gpu') return n.includes('radeon') || n.includes('amd') ? amazonImages.gpu_amd : amazonImages.gpu_nvidia;
