@@ -365,6 +365,39 @@
         .pd-spec-item { border-bottom: 1px solid #222; padding-bottom: 10px; }
         .pd-spec-label { color: #888; margin-bottom: 5px; border-bottom: 1px dotted #555; display: inline-block;}
         .pd-spec-val { font-weight: bold; }
+    
+        /* Dual Thumb Range Slider CSS */
+        .filter-slider-container {
+            position: relative; width: 100%; margin-bottom: 20px; margin-top: 10px;
+        }
+        .filter-slider-track {
+            width: 100%; height: 4px; background: #333; border-radius: 2px;
+            position: absolute; top: 10px; z-index: 1;
+        }
+        .filter-slider-fill {
+            height: 4px; background: #00a8ff; position: absolute; top: 10px; z-index: 2;
+        }
+        .filter-slider {
+            -webkit-appearance: none; appearance: none; width: 100%; position: absolute;
+            top: 0; pointer-events: none; background: transparent; z-index: 3;
+        }
+        .filter-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; pointer-events: all;
+            width: 16px; height: 16px; border-radius: 50%; background: #00a8ff;
+            cursor: pointer; position: relative; z-index: 4; margin-top: 4px;
+        }
+        .filter-slider-labels {
+            display: flex; justify-content: space-between; margin-top: 30px; font-size: 0.8rem; color: #888;
+        }
+        .visualizer-container {
+            position: relative; width: 100%; height: 80px; margin-top: 10px; margin-bottom: 5px;
+            border: 1px solid #333; border-radius: 4px; overflow: hidden; background: #121212;
+        }
+        .visualizer-container img { width: 100%; height: 100%; object-fit: cover; }
+        .visualizer-overlay {
+            position: absolute; top: 0; right: 0; height: 100%; background: rgba(0,0,0,0.7); border-left: 2px solid #00a8ff;
+            transition: width 0.1s;
+        }
     </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -911,9 +944,17 @@
             return 'Other';
         }
 
-        const filterConfig = {
+                const filterConfig = {
             cpu: [{ key: 'cores', label: 'Cores' }, { key: 'socket', label: 'Socket' }],
-            gpu: [{ key: 'vram', label: 'VRAM' }],
+            gpu: [
+                { key: 'chipset', label: 'Chipset' },
+                { key: 'memory_gb', label: 'Memory', type: 'slider', min: 0, max: 96, unit: 'GB' },
+                { key: 'tdp', label: 'TDP', type: 'slider', min: 0, max: 600, unit: 'W' },
+                { key: 'length', label: 'Length', type: 'slider', min: 0, max: 400, unit: 'mm', visualizer: './gpu_length.jpg' },
+                { key: 'memoryType', label: 'Memory Type' },
+                { key: 'interface', label: 'Interface' },
+                { key: 'cooling', label: 'Cooling' }
+            ],
             mobo: [{ key: 'socket', label: 'Socket' }, { key: 'form_factor', label: 'Form Factor' }, { key: 'ramType', label: 'RAM Type' }],
             ram: [{ key: 'type', label: 'Type' }, { key: 'capacity', label: 'Capacity' }],
             storage: [{ key: 'type', label: 'Type' }, { key: 'capacity', label: 'Capacity' }],
