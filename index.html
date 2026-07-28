@@ -635,7 +635,7 @@
         // --- 1. Database Variables (Loaded from database.js) ---
         const categories = [
             { key: 'cpu', label: 'Processor' },
-            { key: 'cooler', label: 'CPU Cooler' },
+            { key: 'cooling', label: 'CPU Cooler' },
             { key: 'mobo', label: 'Motherboard' },
             { key: 'ram', label: 'Memory' },
             { key: 'storage', label: 'Storage' },
@@ -678,22 +678,22 @@
                         name: "RTX 5090 Ultimate 4K Build",
                         price: 4350,
                         score: 54500,
-                        state: { cpu: 'c_r9_9950x', mobo: 'm_x670e', ram: 'r_64gb_6000', storage: 's_4tb_nvme', gpu: 'g_5090', psu: 'p_1200w', case: 'c_7000d', cooler: 'cool_h150i' },
-                        qtyState: { cpu: 1, mobo: 1, ram: 1, storage: 1, gpu: 1, psu: 1, case: 1, cooler: 1 }
+                        state: { cpu: 'c_r9_9950x', mobo: 'm_x670e', ram: 'r_64gb_6000', storage: 's_4tb_nvme', gpu: 'g_5090', psu: 'p_1200w', case: 'c_7000d', cooling: 'cool_h150i' },
+                        qtyState: { cpu: 1, mobo: 1, ram: 1, storage: 1, gpu: 1, psu: 1, case: 1, cooling: 1 }
                     },
                     {
                         name: "High-End 1440p Gaming",
                         price: 1850,
                         score: 31000,
-                        state: { cpu: 'c_i7_14700k', mobo: 'm_z790', ram: 'r_32gb_6000', storage: 's_2tb_nvme', gpu: 'g_4070ti', psu: 'p_850w', case: 'c_4000d', cooler: 'cool_h100i' },
-                        qtyState: { cpu: 1, mobo: 1, ram: 1, storage: 1, gpu: 1, psu: 1, case: 1, cooler: 1 }
+                        state: { cpu: 'c_i7_14700k', mobo: 'm_z790', ram: 'r_32gb_6000', storage: 's_2tb_nvme', gpu: 'g_4070ti', psu: 'p_850w', case: 'c_4000d', cooling: 'cool_h100i' },
+                        qtyState: { cpu: 1, mobo: 1, ram: 1, storage: 1, gpu: 1, psu: 1, case: 1, cooling: 1 }
                     },
                     {
                         name: "Budget 1080p Esports",
                         price: 850,
                         score: 18000,
-                        state: { cpu: 'c_i5_14400f', mobo: 'm_b760', ram: 'r_16gb_3200', storage: 's_1tb_nvme', gpu: 'g_4060', psu: 'p_650w', case: 'c_h510', cooler: 'cool_ak400' },
-                        qtyState: { cpu: 1, mobo: 1, ram: 1, storage: 1, gpu: 1, psu: 1, case: 1, cooler: 1 }
+                        state: { cpu: 'c_i5_14400f', mobo: 'm_b760', ram: 'r_16gb_3200', storage: 's_1tb_nvme', gpu: 'g_4060', psu: 'p_650w', case: 'c_h510', cooling: 'cool_ak400' },
+                        qtyState: { cpu: 1, mobo: 1, ram: 1, storage: 1, gpu: 1, psu: 1, case: 1, cooling: 1 }
                     }
                 ];
                 localStorage.setItem('savedCustomPresets', JSON.stringify(savedCustomPresets));
@@ -858,7 +858,7 @@
 
             // 4. Phase 2: Physical Clearance Checks
             const pc_case = db.case.find(c => c.id === state.case);
-            const cooler = db.cooler.find(c => c.id === state.cooler);
+            const cooler = db.cooling.find(c => c.id === state.cooling);
             const selected_gpu = db.gpu.find(g => g.id === state.gpu);
 
             if (pc_case && pc_case.id !== 'none' && aiInterventionMessage === "") {
@@ -873,7 +873,7 @@
             if (pc_case && pc_case.id !== 'none' && aiInterventionMessage === "") {
                 if (cooler && cooler.id !== 'none') {
                     if (cooler.height > 0 && cooler.height > pc_case.maxCoolerHeight) {
-                        state.cooler = 'none';
+                        state.cooling = 'none';
                         aiInterventionMessage = `AI AUTO-FIX: The selected Air Cooler is ${cooler.height}mm tall, but the Case only supports up to ${pc_case.maxCoolerHeight}mm! The Cooler was removed because the glass side panel would not close.`;
                     }
                 }
