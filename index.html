@@ -834,52 +834,104 @@
 
         function resolveConflicts() {
             const cpu = db.cpu.find(c => c.id === state.cpu);
-            const mobo = db.mobo.find(m => m.id === state.mobo);
+            let mobo = db.mobo.find(m => m.id === state.mobo);
             const psu = db.psu.find(p => p.id === state.psu);
+            const ram = db.ram.find(r => r.id === state.ram);
+            const pc_case = db.case.find(c => c.id === state.case);
+            const cooler = db.cooling.find(c => c.id === state.cooling);
+            const gpu = db.gpu.find(g => g.id === state.gpu);
+            const storage = db.storage.find(s => s.id === state.storage);
             
             // 1. Motherboard vs CPU Socket
-            if (cpu && cpu.id !== 'none' && mobo && mobo.id !== 'none') {
+            if (cpu && cpu.id !== 'none' && mobo && mobo.id !== 'none' && aiInterventionMessage === "") {
                 if (cpu.socket !== mobo.socket) {
-                    state.mobo = 'none';
+                    state.mobo = 'none'; mobo = null;
                     aiInterventionMessage = `AI AUTO-FIX: Your selected motherboard was incompatible with the new CPU socket (${cpu.socket}). The motherboard was reset.`;
                 }
             }
             
-            // 2. RAM vs Motherboard RAM Type
-            const updatedMobo = db.mobo.find(m => m.id === state.mobo);
-            const ram = db.ram.find(r => r.id === state.ram);
-            if (updatedMobo && updatedMobo.id !== 'none' && ram && ram.id !== 'none') {
-                if (updatedMobo.ramType !== ram.type) {
+            // 2. BIOS Update Warning
+            if (cpu && cpu.id !== 'none' && mobo && mobo.id !== 'none' && aiInterventionMessage === "") {
+                if (cpu.gen === 'Zen 5' && mobo.name.includes('B650')) {
+                    aiInterventionMessage = `AI WARNING: The Ryzen 9000 series CPU requires a BIOS update to work with older B650/X670 motherboards! Make sure the motherboard has a BIOS Flashback button.`;
+                }
+            }
+
+            // 3. RAM vs Motherboard RAM Type & Speed
+            if (mobo && mobo.id !== 'none' && ram && ram.id !== 'none' && aiInterventionMessage === "") {
+                if (mobo.ramType !== ram.type) {
                     state.ram = 'none';
-                    aiInterventionMessage = `AI AUTO-FIX: Your selected RAM was incompatible with the motherboard's memory standard (${updatedMobo.ramType}). The memory was reset.`;
+                    aiInterventionMessage = `AI AUTO-FIX: Your selected RAM was incompatible with the motherboard's memory standard (${mobo.ramType}). The memory was reset.`;
+                } else if (ram.speed > mobo.max_ram_speed) {
+                    aiInterventionMessage = `AI WARNING: You selected ${ram.speed}MHz RAM, but this motherboard only natively supports up to ${mobo.max_ram_speed}MHz. The RAM will downclock to a slower speed!`;
                 }
             }
 
-
-            // 4. Phase 2: Physical Clearance Checks
-            const pc_case = db.case.find(c => c.id === state.case);
-            const cooler = db.cooling.find(c => c.id === state.cooling);
-            const selected_gpu = db.gpu.find(g => g.id === state.gpu);
-
-            if (pc_case && pc_case.id !== 'none' && aiInterventionMessage === "") {
-                if (selected_gpu && selected_gpu.id !== 'none' && selected_gpu.length) {
-                    if (selected_gpu.length > pc_case.maxLength) {
-                        state.gpu = 'none';
-                        aiInterventionMessage = `AI AUTO-FIX: The selected Graphics Card is ${selected_gpu.length}mm long, but the Case only supports up to ${pc_case.maxLength}mm! The GPU was removed to prevent a physical collision.`;
-                    }
+            // 4. Mobo vs Case Form Factor
+            if (mobo && mobo.id !== 'none' && pc_case && pc_case.id !== 'none' && aiInterventionMessage === "") {
+                if (mobo.form_factor === 'ATX' && pc_case.form_factor !== 'ATX') {
+                    state.mobo = 'none'; mobo = null;
+                    aiInterventionMessage = `AI AUTO-FIX: An ATX Motherboard will not physically fit inside a ${pc_case.form_factor} case! Motherboard removed.`;
+                } else if (mobo.form_factor === 'Micro ATX' && pc_case.form_factor === 'Mini ITX') {
+                    state.mobo = 'none'; mobo = null;
+                    aiInterventionMessage = `AI AUTO-FIX: A Micro ATX Motherboard will not physically fit inside a Mini ITX case! Motherboard removed.`;
                 }
             }
 
-            if (pc_case && pc_case.id !== 'none' && aiInterventionMessage === "") {
-                if (cooler && cooler.id !== 'none') {
-                    if (cooler.height > 0 && cooler.height > pc_case.maxCoolerHeight) {
-                        state.cooling = 'none';
-                        aiInterventionMessage = `AI AUTO-FIX: The selected Air Cooler is ${cooler.height}mm tall, but the Case only supports up to ${pc_case.maxCoolerHeight}mm! The Cooler was removed because the glass side panel would not close.`;
-                    }
+            // 5. PSU vs Case Form Factor
+            if (psu && psu.id !== 'none' && pc_case && pc_case.id !== 'none' && aiInterventionMessage === "") {
+                if (psu.form_factor === 'ATX' && pc_case.psu_form_factor === 'SFX') {
+                    state.psu = 'none';
+                    aiInterventionMessage = `AI AUTO-FIX: The selected Case requires a small SFX Power Supply. An ATX Power Supply will not fit! PSU removed.`;
                 }
             }
 
-            // 3. Power Supply Check
+            // 6. Case Fan & Radiator Support
+            if (cooler && cooler.id !== 'none' && pc_case && pc_case.id !== 'none' && aiInterventionMessage === "") {
+                if (cooler.is_aio && cooler.rad_size > pc_case.max_rad) {
+                    state.cooling = 'none';
+                    aiInterventionMessage = `AI AUTO-FIX: The selected Case only supports up to a ${pc_case.max_rad}mm radiator. Your ${cooler.rad_size}mm AIO will not fit! Cooler removed.`;
+                }
+            }
+
+            // 7. RAM Clearance vs Air Coolers
+            if (cooler && cooler.id !== 'none' && ram && ram.id !== 'none' && aiInterventionMessage === "") {
+                if (!cooler.is_aio && cooler.height_mm >= 165 && ram.height_mm > 35) {
+                    aiInterventionMessage = `AI WARNING: PHYSICAL COLLISION DETECTED! The massive Air Cooler you selected will likely physically block your tall RGB RAM sticks. Consider Low Profile RAM or an AIO.`;
+                }
+            }
+
+            // 8. GPU Physical Clearance
+            if (pc_case && pc_case.id !== 'none' && gpu && gpu.id !== 'none' && aiInterventionMessage === "") {
+                if (gpu.length > pc_case.maxLength) {
+                    state.gpu = 'none';
+                    aiInterventionMessage = `AI AUTO-FIX: The selected Graphics Card is ${gpu.length}mm long, but the Case only supports up to ${pc_case.maxLength}mm! The GPU was removed.`;
+                }
+            }
+            
+            // 9. GPU PCIe Generation Bottlenecks
+            if (mobo && mobo.id !== 'none' && gpu && gpu.id !== 'none' && aiInterventionMessage === "") {
+                if (gpu.pcie_gen > mobo.pcie_gen) {
+                    aiInterventionMessage = `AI WARNING: You are putting a PCIe Gen ${gpu.pcie_gen} Graphics Card into a motherboard that only supports Gen ${mobo.pcie_gen}. It will work, but you may lose up to 5% performance.`;
+                }
+            }
+
+            // 10. Storage PCIe Generation Bottlenecks
+            if (mobo && mobo.id !== 'none' && storage && storage.id !== 'none' && aiInterventionMessage === "") {
+                if (storage.pcie_gen > mobo.pcie_gen) {
+                    aiInterventionMessage = `AI WARNING: You selected an ultra-fast Gen ${storage.pcie_gen} NVMe SSD, but the motherboard only supports Gen ${mobo.pcie_gen}. The SSD will run at half speed!`;
+                }
+            }
+
+            // 11. Air Cooler vs Case Glass Panel Clearance
+            if (pc_case && pc_case.id !== 'none' && cooler && cooler.id !== 'none' && aiInterventionMessage === "") {
+                if (!cooler.is_aio && cooler.height_mm > 0 && cooler.height_mm > pc_case.maxCoolerHeight) {
+                    state.cooling = 'none';
+                    aiInterventionMessage = `AI AUTO-FIX: The selected Air Cooler is ${cooler.height_mm}mm tall, but the Case only supports up to ${pc_case.maxCoolerHeight}mm! The Cooler was removed because the glass side panel would not close.`;
+                }
+            }
+
+            // 12. Power Supply Draw Check
             if (psu && psu.id !== 'none' && aiInterventionMessage === "") {
                 const estDraw = estimateWattage();
                 const psuWatts = parseInt(psu.name.match(/\d+W/)?.[0] || psu.name.match(/\d+/)?.[0] || "500");
