@@ -2097,19 +2097,22 @@
         var lastSelectedCategory = 'gpu';
         var currentSketchfabId = null;
 
-        function init3D() {
+        function loadSketchfabModel(uid) {
+            if (uid === currentSketchfabId) return;
+            const container = document.getElementById('canvas-container');
+            if (!container) return;
+            
+            // Recreate iframe to cleanly load new model
+            container.innerHTML = '<iframe src="" id="api-frame" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" style="width:100%; height:100%; border:0;"></iframe>';
             var iframe = document.getElementById('api-frame');
-            if (!iframe) return;
-            var uid = '1a24273417534f69afa0f7c62b643ffc'; // default GPU
+            
             var client = new Sketchfab('1.12.1', iframe);
-
             client.init(uid, {
                 success: function onSuccess(apiInstance) {
                     api = apiInstance;
                     api.start();
                     api.addEventListener('viewerready', function() {
-                        console.log('Sketchfab Showcase Viewer is ready');
-                        // Attempt to find RGB materials
+                        rgbMaterials = [];
                         api.getMaterialList(function(err, materials) {
                             if(!err) {
                                 materials.forEach(mat => {
@@ -2117,10 +2120,10 @@
                                         rgbMaterials.push(mat);
                                     }
                                 });
+                                // apply current custom RGB
+                                if(customRGB) updateRGB(customRGB);
                             }
                         });
-                        
-                        update3D();
                     });
                 },
                 error: function onError() {
@@ -2130,49 +2133,30 @@
                 ui_controls: 1,
                 ui_inspector: 0,
                 ui_watermark: 0,
-                transparent: 1
+                transparent: 1,
+                autostart: 1
             });
+            currentSketchfabId = uid;
+        }
+
+        function init3D() {
+            update3D(); // Will trigger loadSketchfabModel with the current GPU
         }
 
         function update3D() {
             // Find the item for the last selected category
-            const item = getDBArray(lastSelectedCategory).find(i => i.id === state[lastSelectedCategory]);
+            let item = null;
+            if (lastSelectedCategory && state[lastSelectedCategory]) {
+                item = getDBArray(lastSelectedCategory).find(i => i.id === state[lastSelectedCategory]);
+            }
             
-            if (item && item.sketchfab_id && item.sketchfab_id !== currentSketchfabId) {
-                // We need to load the new model in the iframe
-                var iframe = document.getElementById('api-frame');
-                if (iframe) {
-                    iframe.src = `https://sketchfab.com/models/${item.sketchfab_id}/embed?autostart=1&transparent=1&ui_infos=0&ui_watermark=0`;
-                    currentSketchfabId = item.sketchfab_id;
-                    // Re-init client to get API access to the new model
-                    var client = new Sketchfab('1.12.1', iframe);
-                    client.init(currentSketchfabId, {
-                        success: function onSuccess(apiInstance) {
-                            api = apiInstance;
-                            api.start();
-                            api.addEventListener('viewerready', function() {
-                                rgbMaterials = [];
-                                api.getMaterialList(function(err, materials) {
-                                    if(!err) {
-                                        materials.forEach(mat => {
-                                            if(mat.name.toLowerCase().includes('led') || mat.name.toLowerCase().includes('rgb') || mat.name.toLowerCase().includes('light') || mat.name.toLowerCase().includes('emission')) {
-                                                rgbMaterials.push(mat);
-                                            }
-                                        });
-                                    }
-                                });
-                            });
-                        },
-                        error: function onError() {
-                            console.log('Sketchfab Viewer error during reload');
-                        },
-                        ui_infos: 0,
-                        ui_controls: 1,
-                        ui_inspector: 0,
-                        ui_watermark: 0,
-                        transparent: 1
-                    });
-                }
+            // If no valid sketchfab id for the selected category, fallback to GPU
+            if (!item || !item.sketchfab_id) {
+                item = getDBArray('gpu').find(i => i.id === state['gpu']);
+            }
+            
+            if (item && item.sketchfab_id) {
+                loadSketchfabModel(item.sketchfab_id);
             }
 
             // Update HUD
