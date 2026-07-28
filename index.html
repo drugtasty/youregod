@@ -425,8 +425,6 @@
     </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Sketchfab API -->
-    <script type="text/javascript" src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
 
     
     
@@ -796,33 +794,7 @@
                 aiInterventionMessage = "";
                 refreshBuilderDisplay();
                 updateTelemetry();
-            // Update Hardware Gallery
-            const gallery = document.getElementById('build-gallery');
-            let galleryHTML = '';
-            
-            const categoriesToDisplay = [
-                { key: 'case', label: 'Case' },
-                { key: 'mobo', label: 'Motherboard' },
-                { key: 'cpu', label: 'CPU' },
-                { key: 'cooling', label: 'Cooler' },
-                { key: 'ram', label: 'Memory' },
-                { key: 'gpu', label: 'Graphics Card' },
-                { key: 'storage', label: 'Storage' },
-                { key: 'psu', label: 'Power Supply' }
-            ];
-
-            categoriesToDisplay.forEach(cat => {
-                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
-                if (item && item.id !== 'none' && item.img) {
-                    galleryHTML += `
-                        <div class="gallery-item" title="${item.name}">
-                            <img src="${item.img}" alt="${item.name}">
-                            <div class="gallery-label">${cat.label}</div>
-                        </div>
-                    `;
-                }
-            });
-            gallery.innerHTML = galleryHTML;
+            updateGallery();
             }
         }
 
@@ -916,33 +888,7 @@
             document.getElementById('custom-modal').style.display = 'none';
             initUI(); 
             updateTelemetry();
-            // Update Hardware Gallery
-            const gallery = document.getElementById('build-gallery');
-            let galleryHTML = '';
-            
-            const categoriesToDisplay = [
-                { key: 'case', label: 'Case' },
-                { key: 'mobo', label: 'Motherboard' },
-                { key: 'cpu', label: 'CPU' },
-                { key: 'cooling', label: 'Cooler' },
-                { key: 'ram', label: 'Memory' },
-                { key: 'gpu', label: 'Graphics Card' },
-                { key: 'storage', label: 'Storage' },
-                { key: 'psu', label: 'Power Supply' }
-            ];
-
-            categoriesToDisplay.forEach(cat => {
-                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
-                if (item && item.id !== 'none' && item.img) {
-                    galleryHTML += `
-                        <div class="gallery-item" title="${item.name}">
-                            <img src="${item.img}" alt="${item.name}">
-                            <div class="gallery-label">${cat.label}</div>
-                        </div>
-                    `;
-                }
-            });
-            gallery.innerHTML = galleryHTML;
+            updateGallery();
         }
 
         function setFilter(catKey, filterId) {
@@ -1330,40 +1276,13 @@
 
         function selectPartFromGrid(catKey, itemId) {
             state[catKey] = itemId;
-            lastSelectedCategory = catKey;
             closePartSelector();
             document.getElementById('pc-preset-selector').value = 'custom';
             aiInterventionMessage = "";
             resolveConflicts();
             refreshBuilderDisplay();
             updateTelemetry();
-            // Update Hardware Gallery
-            const gallery = document.getElementById('build-gallery');
-            let galleryHTML = '';
-            
-            const categoriesToDisplay = [
-                { key: 'case', label: 'Case' },
-                { key: 'mobo', label: 'Motherboard' },
-                { key: 'cpu', label: 'CPU' },
-                { key: 'cooling', label: 'Cooler' },
-                { key: 'ram', label: 'Memory' },
-                { key: 'gpu', label: 'Graphics Card' },
-                { key: 'storage', label: 'Storage' },
-                { key: 'psu', label: 'Power Supply' }
-            ];
-
-            categoriesToDisplay.forEach(cat => {
-                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
-                if (item && item.id !== 'none' && item.img) {
-                    galleryHTML += `
-                        <div class="gallery-item" title="${item.name}">
-                            <img src="${item.img}" alt="${item.name}">
-                            <div class="gallery-label">${cat.label}</div>
-                        </div>
-                    `;
-                }
-            });
-            gallery.innerHTML = galleryHTML;
+            updateGallery();
         }
 
         function handleQtyChange(categoryKey) {
@@ -1375,33 +1294,7 @@
                 qtyState[categoryKey] = qty;
             }
             updateTelemetry();
-            // Update Hardware Gallery
-            const gallery = document.getElementById('build-gallery');
-            let galleryHTML = '';
-            
-            const categoriesToDisplay = [
-                { key: 'case', label: 'Case' },
-                { key: 'mobo', label: 'Motherboard' },
-                { key: 'cpu', label: 'CPU' },
-                { key: 'cooling', label: 'Cooler' },
-                { key: 'ram', label: 'Memory' },
-                { key: 'gpu', label: 'Graphics Card' },
-                { key: 'storage', label: 'Storage' },
-                { key: 'psu', label: 'Power Supply' }
-            ];
-
-            categoriesToDisplay.forEach(cat => {
-                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
-                if (item && item.id !== 'none' && item.img) {
-                    galleryHTML += `
-                        <div class="gallery-item" title="${item.name}">
-                            <img src="${item.img}" alt="${item.name}">
-                            <div class="gallery-label">${cat.label}</div>
-                        </div>
-                    `;
-                }
-            });
-            gallery.innerHTML = galleryHTML;
+            updateGallery();
         }
 
         function checkThermalPaste() {
@@ -1980,6 +1873,34 @@
             }
         }
 
+
+        // --- Hardware Gallery ---
+        function updateGallery() {
+            const gallery = document.getElementById('build-gallery');
+            if (!gallery) return;
+            const cats = [
+                { key: 'case', label: 'Case' },
+                { key: 'mobo', label: 'Mobo' },
+                { key: 'cpu', label: 'CPU' },
+                { key: 'cooling', label: 'Cooler' },
+                { key: 'ram', label: 'RAM' },
+                { key: 'gpu', label: 'GPU' },
+                { key: 'storage', label: 'Storage' },
+                { key: 'psu', label: 'PSU' }
+            ];
+            let html = '';
+            cats.forEach(cat => {
+                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
+                if (item && item.id !== 'none' && item.img) {
+                    html += `<div class="gallery-item" title="${item.name}">
+                        <img src="${item.img}" alt="${item.name}" loading="lazy">
+                        <div class="gallery-label">${cat.label}</div>
+                    </div>`;
+                }
+            });
+            gallery.innerHTML = html || `<div style="color:#333; font-family: 'JetBrains Mono', monospace; font-size:0.7rem; padding:10px 0; width:100%; text-align:center;">SELECT PARTS TO SEE YOUR BUILD</div>`;
+        }
+
         // --- Init ---
         document.addEventListener('DOMContentLoaded', () => {
             initUI();
@@ -1988,33 +1909,7 @@
             if(typeof init3D === 'function') init3D();
             updatePresetDropdown();
             updateTelemetry();
-            // Update Hardware Gallery
-            const gallery = document.getElementById('build-gallery');
-            let galleryHTML = '';
-            
-            const categoriesToDisplay = [
-                { key: 'case', label: 'Case' },
-                { key: 'mobo', label: 'Motherboard' },
-                { key: 'cpu', label: 'CPU' },
-                { key: 'cooling', label: 'Cooler' },
-                { key: 'ram', label: 'Memory' },
-                { key: 'gpu', label: 'Graphics Card' },
-                { key: 'storage', label: 'Storage' },
-                { key: 'psu', label: 'Power Supply' }
-            ];
-
-            categoriesToDisplay.forEach(cat => {
-                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
-                if (item && item.id !== 'none' && item.img) {
-                    galleryHTML += `
-                        <div class="gallery-item" title="${item.name}">
-                            <img src="${item.img}" alt="${item.name}">
-                            <div class="gallery-label">${cat.label}</div>
-                        </div>
-                    `;
-                }
-            });
-            gallery.innerHTML = galleryHTML;
+            updateGallery();
             if (window.innerWidth <= 900) document.getElementById('view-builder').style.display = 'grid'; 
         });
     
@@ -2201,7 +2096,6 @@
         // Allow closing modal by clicking outside
     
         // -----------------------------------------
-        // 3D ENGINE & IMMERSION LOGIC (Sketchfab Showcase)
         // -----------------------------------------
         
 </script>
