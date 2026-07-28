@@ -63,11 +63,15 @@ const db = {
         dummyItem,
         // RTX 60 series (Future)
         // RTX 50 series
+        { id: 'g_5090', name: 'NVIDIA RTX 5090 32GB', price: 1999, score: 41000, vram: '32GB' },
+        { id: 'g_5080', name: 'NVIDIA RTX 5080 16GB', price: 1199, score: 29500, vram: '16GB' },
+        { id: 'g_5070ti', name: 'NVIDIA RTX 5070 Ti 16GB', price: 899, score: 24500, vram: '16GB' },
+        { id: 'g_5070', name: 'NVIDIA RTX 5070 12GB', price: 599, score: 20500, vram: '12GB' },
         // RTX 40 series
         { id: 'g_4090', name: 'NVIDIA RTX 4090 24GB', price: 1799, score: 36000, vram: '24GB' },
         { id: 'g_4080s', name: 'NVIDIA RTX 4080 Super', price: 999, score: 28000, vram: '16GB' },
         { id: 'g_4080', name: 'NVIDIA RTX 4080 16GB', price: 1100, score: 27000, vram: '16GB' },
-        { id: 'g_4070tis', name: 'NVIDIA RTX 4070 Ti Super', price: 799, score: 24000 },
+        { id: 'g_4070tis', name: 'NVIDIA RTX 4070 Ti Super', price: 799, score: 24000, vram: '16GB' },
         { id: 'g_4070ti', name: 'NVIDIA RTX 4070 Ti 12GB', price: 750, score: 22500, vram: '12GB' },
         { id: 'g_4070s', name: 'NVIDIA RTX 4070 Super', price: 599, score: 21000, vram: '12GB' },
         { id: 'g_4070', name: 'NVIDIA RTX 4070 12GB', price: 549, score: 18000, vram: '12GB' },
