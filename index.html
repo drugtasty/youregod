@@ -285,11 +285,11 @@
         .grid-image {
             height: 180px; background-color: #ffffff;
             display: flex; justify-content: center; align-items: center;
-            border-bottom: 1px solid #333; position: relative; padding: 15px; box-sizing: border-box;
+            border-bottom: 1px solid #333; position: relative; padding: 20px; box-sizing: border-box;
             overflow: hidden; font-size: 1rem; color: #000; text-align: center;
         }
         .grid-image img {
-            width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply;
+            max-width: 85%; max-height: 85%; object-fit: contain; mix-blend-mode: multiply; margin: auto;
         }
         .grid-badge {
             position: absolute; bottom: 0; left: 0; background-color: #e11d48; color: #fff;
@@ -765,8 +765,13 @@
             const n = item.name.toLowerCase();
             
             const amazonImages = {
-                cpu_amd: 'https://images-na.ssl-images-amazon.com/images/P/B0D6NNRBGP.01.MAIN._SCRM_.jpg',
-                cpu_intel: 'https://images-na.ssl-images-amazon.com/images/P/B0BG6Q152D.01.MAIN._SCRM_.jpg',
+                cpu_amd_r9: 'https://images-na.ssl-images-amazon.com/images/P/B0D6NNRBGP.01.MAIN._SCRM_.jpg',
+                cpu_amd_r7: 'https://images-na.ssl-images-amazon.com/images/P/B0BTZB7F88.01.MAIN._SCRM_.jpg',
+                cpu_amd_r5: 'https://images-na.ssl-images-amazon.com/images/P/B0BG6MF28V.01.MAIN._SCRM_.jpg',
+                cpu_intel_i9: 'https://m.media-amazon.com/images/I/51pMb0rZioL.jpg',
+                cpu_intel_i7: 'https://images-na.ssl-images-amazon.com/images/P/B0CGJ4X9L4.01.MAIN._SCRM_.jpg',
+                cpu_intel_i5: 'https://images-na.ssl-images-amazon.com/images/P/B0CHBGVFHP.01.MAIN._SCRM_.jpg',
+                cpu_intel_generic: 'https://images-na.ssl-images-amazon.com/images/P/B09FXNVDBJ.01.MAIN._SCRM_.jpg',
                 gpu_nvidia: 'https://images-na.ssl-images-amazon.com/images/P/B0BGP8FGFX.01.MAIN._SCRM_.jpg',
                 gpu_amd: 'https://images-na.ssl-images-amazon.com/images/P/B0BR6L7TKR.01.MAIN._SCRM_.jpg',
                 mobo_asus: 'https://images-na.ssl-images-amazon.com/images/P/B0BQD58D96.01.MAIN._SCRM_.jpg',
@@ -786,7 +791,18 @@
                 cooling_nzxt: 'https://images-na.ssl-images-amazon.com/images/P/B0B6Y15C5Y.01.MAIN._SCRM_.jpg'
             };
 
-            if (catKey === 'cpu') return n.includes('amd') ? amazonImages.cpu_amd : amazonImages.cpu_intel;
+            if (catKey === 'cpu') {
+                if (n.includes('amd') || n.includes('ryzen')) {
+                    if (n.includes(' 9 ') || n.includes('9950') || n.includes('7950') || n.includes('5950')) return amazonImages.cpu_amd_r9;
+                    if (n.includes(' 7 ') || n.includes('9700') || n.includes('7800') || n.includes('7700') || n.includes('5800') || n.includes('5700')) return amazonImages.cpu_amd_r7;
+                    return amazonImages.cpu_amd_r5;
+                } else {
+                    if (n.includes(' 9 ') || n.includes('14900') || n.includes('13900') || n.includes('285k')) return amazonImages.cpu_intel_i9;
+                    if (n.includes(' 7 ') || n.includes('14700') || n.includes('13700') || n.includes('265k')) return amazonImages.cpu_intel_i7;
+                    if (n.includes(' 5 ') || n.includes('14600') || n.includes('13600') || n.includes('13400') || n.includes('245k')) return amazonImages.cpu_intel_i5;
+                    return amazonImages.cpu_intel_generic;
+                }
+            }
             if (catKey === 'gpu') return n.includes('radeon') || n.includes('amd') ? amazonImages.gpu_amd : amazonImages.gpu_nvidia;
             if (catKey === 'mobo' || catKey === 'motherboard') {
                 if (n.includes('asus') || n.includes('rog')) return amazonImages.mobo_asus;
