@@ -638,13 +638,23 @@
             { key: 'cooling', label: 'CPU Cooler' },
             { key: 'mobo', label: 'Motherboard' },
             { key: 'ram', label: 'Memory' },
-            { key: 'storage', label: 'Storage' },
+            { key: 'storage', label: 'Primary Storage' },
+            { key: 'storage2', label: 'Secondary Storage' },
             { key: 'gpu', label: 'Graphics Card' },
             { key: 'case', label: 'Case' },
             { key: 'psu', label: 'Power Supply' },
-            { key: 'monitor', label: 'Monitor' },
-            { key: 'os', label: 'Operating System' }
+            { key: 'monitor', label: 'Primary Monitor' },
+            { key: 'monitor2', label: 'Secondary Monitor' },
+            { key: 'os', label: 'Operating System' },
+            { key: 'accessories', label: 'Accessories & Peripherals' },
+            { key: 'fans', label: 'Case Fans' }
         ];
+
+        function getDBArray(catKey) {
+            if (catKey.startsWith('storage')) return db.storage || [];
+            if (catKey.startsWith('monitor')) return db.monitor || [];
+            return db[catKey] || [];
+        }
 
         const categoryFilters = {
             cpu: [{id:'all', label:'ALL'}, {id:'am5', label:'AM5'}, {id:'am4', label:'AM4'}, {id:'lga1700', label:'LGA1700'}, {id:'lga1200', label:'LGA1200'}],
@@ -701,8 +711,8 @@
             customPartsDB = JSON.parse(localStorage.getItem('customPartsDB')) || {};
             // Inject saved custom parts into the database before rendering
             Object.keys(customPartsDB).forEach(catKey => {
-                if (db[catKey]) {
-                    db[catKey].push(...customPartsDB[catKey]);
+                if (getDBArray(catKey)) {
+                    getDBArray(catKey).push(...customPartsDB[catKey]);
                 }
             });
         } catch (e) {}
@@ -720,7 +730,7 @@
             const name = nameInput.value.trim() || 'Untitled Build';
             let price = 0; let gpuS = 0; let cpuS = 0;
             categories.forEach(cat => {
-                const item = db[cat.key].find(i => i.id === state[cat.key]) || dummyItem;
+                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]) || dummyItem;
                 price += item.price;
                 if(cat.key === 'gpu') gpuS = item.score;
                 if(cat.key === 'cpu') cpuS = item.score;
@@ -811,7 +821,7 @@
             const newId = `custom_${Date.now()}`;
             const newItem = { id: newId, name: `[CUSTOM] ${name}`, price: price, score: 0 };
             
-            db[catKey].push(newItem);
+            getDBArray(catKey).push(newItem);
             if (!customPartsDB[catKey]) customPartsDB[catKey] = [];
             customPartsDB[catKey].push(newItem);
             localStorage.setItem('customPartsDB', JSON.stringify(customPartsDB));
@@ -948,7 +958,7 @@
                 const buyBtn = document.getElementById(`buy-${cat.key}`);
                 if (!btn) return;
                 
-                const selectedItem = db[cat.key].find(i => i.id === state[cat.key]);
+                const selectedItem = getDBArray(cat.key).find(i => i.id === state[cat.key]);
                 if (selectedItem && selectedItem.id !== 'none') {
                     btn.innerText = selectedItem.name;
                     if (buyBtn) buyBtn.disabled = false;
@@ -1082,7 +1092,7 @@
             document.getElementById('selector-title').innerText = `Select ${cat.label}`;
             
             const brands = new Set();
-            db[catKey].forEach(item => {
+            getDBArray(catKey).forEach(item => {
                 if (item.id !== 'none') brands.add(extractBrand(item.name));
             });
             selectorBrands = Array.from(brands).sort();
@@ -1098,7 +1108,7 @@
             const configs = filterConfig[catKey] || [];
             configs.forEach(conf => {
                 const uniqueValues = new Set();
-                db[catKey].forEach(item => {
+                getDBArray(catKey).forEach(item => {
                     if (item.id !== 'none' && item[conf.key]) uniqueValues.add(item[conf.key].toString());
                 });
                 if (uniqueValues.size > 0) {
@@ -1152,7 +1162,7 @@
             let html = '';
             let count = 0;
 
-            db[currentSelectorCat].forEach(item => {
+            getDBArray(currentSelectorCat).forEach(item => {
                 if (item.id === 'none') return;
                 
                 let isCompatible = true;
@@ -1227,8 +1237,22 @@
             updateTelemetry();
         }
 
+        function checkThermalPaste() {
+            const cooler = db.cooling.find(c => c.id === state.cooling);
+            if (cooler && cooler.id !== 'none' && !cooler.name.toLowerCase().includes('paste included')) {
+                const acc = getDBArray('accessories').find(a => a.id === state.accessories);
+                if (!acc || acc.id === 'none') {
+                    // Prompt
+                    if(confirm("Your CPU Cooler doesn't include pre-applied thermal paste. Would you like to add Thermal Grizzly Kryonaut to your accessories?")) {
+                        state.accessories = 'acc_kryonaut';
+                        refreshBuilderDisplay();
+                    }
+                }
+            }
+        }
+
         function buyItem(categoryKey) {
-            const item = db[categoryKey].find(i => i.id === state[categoryKey]);
+            const item = getDBArray(categoryKey).find(i => i.id === state[categoryKey]);
             if (item && item.id !== 'none') {
                 window.open(`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(item.name)}`, '_blank');
             }
@@ -1350,7 +1374,7 @@
             let isAMD = false; let missingCount = 0; let psuWatts = 0;
 
             categories.forEach(cat => {
-                const item = db[cat.key].find(i => i.id === state[cat.key]) || dummyItem;
+                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]) || dummyItem;
                 const qty = qtyState[cat.key] || 1;
                 if (item.id === 'none') {
                     if (['cpu', 'gpu', 'mobo', 'ram', 'storage', 'cooling', 'psu', 'case'].includes(cat.key)) {
@@ -1381,7 +1405,7 @@
             // Build Checklist Update
             let checklistHTML = '';
             categories.forEach(cat => {
-                const item = db[cat.key].find(i => i.id === state[cat.key]) || dummyItem;
+                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]) || dummyItem;
                 if (item.id === 'none') {
                     checklistHTML += `<div class="checklist-item missing"><span>${cat.label}</span><span>Required</span></div>`;
                 } else {
@@ -1462,7 +1486,7 @@
             let text = "🛠️ MY ULTIMATE PC BUILD 🛠️\n\n";
             let total = 0;
             categories.forEach(cat => {
-                const item = db[cat.key].find(i => i.id === state[cat.key]);
+                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
                 const qty = qtyState[cat.key] || 1;
                 if (item && item.id !== 'none') {
                     const itemTotal = item.price * qty;
@@ -1545,7 +1569,7 @@
             let buildContext = "Current PC Build Context:\n";
             let totalPrice = 0;
             categories.forEach(cat => {
-                const item = db[cat.key].find(i => i.id === state[cat.key]) || dummyItem;
+                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]) || dummyItem;
                 const qty = qtyState[cat.key] || 1;
                 if (item.id !== 'none') {
                     const itemTotal = item.price * qty;
@@ -1707,7 +1731,7 @@
             
             let valueScore = 0;
             const totalCost = categories.reduce((sum, cat) => {
-                const item = db[cat.key].find(i => i.id === state[cat.key]);
+                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
                 return sum + (item ? item.price : 0);
             }, 0);
             if(totalCost > 0 && gpu.score > 0) valueScore = Math.min(((gpu.score + cpu.score) / totalCost) * 1.5, 100);
@@ -1730,7 +1754,7 @@
             categories.forEach(cat => {
                 if (params.has(cat.key)) {
                     const id = params.get(cat.key);
-                    if (db[cat.key] && db[cat.key].some(i => i.id === id)) {
+                    if (getDBArray(cat.key) && getDBArray(cat.key).some(i => i.id === id)) {
                         state[cat.key] = id;
                         hasLoaded = true;
                     }
@@ -1758,7 +1782,7 @@
             let total = 0;
             let buildParts = [];
             categories.forEach(cat => {
-                const item = db[cat.key].find(i => i.id === state[cat.key]);
+                const item = getDBArray(cat.key).find(i => i.id === state[cat.key]);
                 if (item && item.id !== 'none') {
                     buildParts.push(item.name);
                     total += item.price;
@@ -1821,7 +1845,7 @@
         let priceChartInstance = null;
 
         function openPartDetails(itemId) {
-            const item = db[currentSelectorCat].find(i => i.id === itemId);
+            const item = getDBArray(currentSelectorCat).find(i => i.id === itemId);
             if (!item) return;
 
             document.getElementById('pd-modal').style.display = 'flex';
